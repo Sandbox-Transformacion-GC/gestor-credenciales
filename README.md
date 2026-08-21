@@ -17,7 +17,7 @@ Aplicación web privada para guardar contraseñas y correos del equipo, con:
 ## Arquitectura
 
 ```
-Navegador (React + Vite, hosteado en Vercel)
+Navegador (React + Vite, hosteado en Netlify)
    │  HTTPS
    ▼
 Supabase (Postgres + Auth)
@@ -82,21 +82,25 @@ git push -u origin main
 Usa un **repositorio privado** en GitHub (Settings → General → Danger Zone si necesitas
 cambiarlo). El `.gitignore` ya excluye tu `.env`, así que las claves de Supabase no se suben.
 
-## 4. Desplegar en Vercel (automático)
+## 4. Desplegar en Netlify (automático)
 
-El repo es privado, así que en vez de GitHub Pages (que solo publica repos privados en el plan
-Enterprise) se usa Vercel, que sí tiene plan gratis con repos privados.
+El repo es privado y pertenece a una organización de GitHub. GitHub Pages solo publica repos
+privados en el plan Enterprise, y Vercel Hobby (gratis) no permite repos privados de
+organizaciones — Netlify sí lo permite en su plan gratis, así que es el que se usa aquí.
 
-1. Entra a [vercel.com](https://vercel.com) → **Add New → Project**.
-2. Autoriza a Vercel a acceder a tu organización/repo de GitHub si te lo pide, y selecciona
-   `Sandbox-Transformacion-GC/gestor-credenciales`.
-3. Vercel detecta automáticamente que es un proyecto **Vite** — no cambies nada del build command
-   ni del output directory por defecto.
-4. Antes de darle a Deploy (o después, en **Settings → Environment Variables**), agrega:
+1. Entra a [netlify.com](https://netlify.com) → crea una cuenta gratis (puedes entrar directo con
+   tu cuenta de GitHub) → **Add new site → Import an existing project**.
+2. Elige **GitHub** como proveedor y autoriza a Netlify a acceder a la organización
+   `Sandbox-Transformacion-GC` si te lo pide.
+3. Selecciona el repo `gestor-credenciales`.
+4. Netlify lee automáticamente [`netlify.toml`](netlify.toml) (build command `npm run build`,
+   carpeta a publicar `dist`) — no necesitas cambiar nada ahí.
+5. Antes de desplegar (o después, en **Site configuration → Environment variables**), agrega:
    - `VITE_SUPABASE_URL` → `https://wibkzheavbyjxiwctkxz.supabase.co`
    - `VITE_SUPABASE_ANON_KEY` → tu anon/public key de Supabase
-5. **Deploy**. En 1-2 minutos te da una URL final (algo como
-   `https://gestor-credenciales.vercel.app`).
+6. **Deploy site**. En 1-2 minutos te da una URL final (algo como
+   `https://gestor-credenciales-xxxx.netlify.app`); puedes personalizar ese subdominio en
+   **Site configuration → Domain management**.
 
 De ahí en adelante, cada `git push` a `main` vuelve a desplegar solo — no hace falta repetir estos
 pasos.
@@ -110,7 +114,7 @@ pasos.
 - **Cifrado de extremo a extremo para las contraseñas**: AES-256-GCM derivado con PBKDF2
   (250,000 iteraciones) desde la clave maestra del equipo; el valor cifrado es lo único que
   llega a la base de datos.
-- **HTTPS** en tránsito (Vercel y Supabase lo fuerzan).
+- **HTTPS** en tránsito (Netlify y Supabase lo fuerzan).
 - **Auto-bloqueo** de la bóveda tras 15 min inactivo (borra la clave de cifrado de la memoria).
 - **Portapapeles con autoborrado** a los 20 segundos tras copiar una contraseña.
 - **Papelera lógica** (soft delete): "Eliminar" no borra físicamente el registro, evita pérdidas
