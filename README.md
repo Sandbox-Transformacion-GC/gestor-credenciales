@@ -42,12 +42,14 @@ No hay backend propio que mantener: Supabase actúa como base de datos + autenti
    2. `migration_002_roles_categories_sharing.sql`
    3. `migration_003_personal_favorites_order.sql`
    4. `migration_004_lock_ownership_fields.sql`
+   5. `migration_005_block_public_signup.sql`
 
    Esto crea las tablas, los triggers y las políticas de seguridad (RLS). Si en el futuro
    agrego más migraciones numeradas, corre solo las que aún no hayas ejecutado.
-4. Ve a **Authentication → Providers → Email** y **desactiva** "Allow new users to sign up"
-   (o equivalente "Enable email signups"). Así nadie puede crearse una cuenta por su cuenta;
-   solo entran las personas que tú invites.
+4. Ve a **Authentication → Sign In / Providers → Email** y **activa** "Enable email provider"
+   (lo necesitas para poder iniciar sesión). El registro público se bloquea aparte, a nivel de
+   base de datos, con `migration_005_block_public_signup.sql` — ver la sección de Seguridad más
+   abajo.
 5. Ve a **Authentication → Users → Invite user** y agrega los 3 correos del equipo (uno por uno).
    Cada persona recibirá un correo para fijar su contraseña de acceso.
    - Opcional: al invitar, en "User Metadata" puedes agregar `{"full_name": "Nombre Apellido"}`
@@ -134,18 +136,25 @@ pasos.
 - A nivel de base de datos, nadie puede reasignar de quién es una credencial ni tocar su fecha de
   creación desde fuera de la app (protegido con un trigger, no solo con la interfaz).
 
-### ⚠️ Dos cosas que debes verificar tú mismo en el dashboard de Supabase
+### ⚠️ Registro público: cerrado a nivel de base de datos
 
-1. **Confirma que el registro público sigue desactivado.** Ve a **Authentication → Sign In /
-   Providers → Email** y revisa que no exista forma de que alguien externo se cree una cuenta
-   (el toggle de "Enable email provider" debe seguir encendido para que el login funcione, pero
-   el registro público debe seguir bloqueado). Esto es crítico: la `anon key` es pública por
-   diseño (viaja en el código del sitio), así que si el registro público estuviera habilitado,
-   cualquiera que la encuentre podría crear una cuenta y leer las credenciales que no estén
-   restringidas a personas específicas.
-2. **Sube el mínimo de la contraseña de login** de 6 a al menos 10-12 caracteres, en la misma
-   pantalla (**Minimum password length**). No afecta la clave maestra de la bóveda (esa ya exige
-   10+ desde la app).
+En el dashboard de Supabase, "Enable email provider" controla login y registro **juntos** — no
+hay forma de dejar solo el login encendido desde ahí. Por eso el registro público NO se bloquea
+en el dashboard, sino con `migration_005_block_public_signup.sql`: crea una lista blanca de
+correos permitidos y rechaza (a nivel de base de datos, sin importar cómo esté configurado el
+dashboard) cualquier intento de registro con un correo que no esté en esa lista. Asegúrate de
+haberla corrido — si no, cualquiera que encuentre la `anon key` en el código del sitio (es
+pública por diseño) podría crearse una cuenta y leer las credenciales no restringidas a personas
+específicas.
+
+**Para agregar a una 4ta persona en el futuro:**
+1. SQL Editor: `insert into public.allowed_signup_emails (email) values ('correo@dominio.com');`
+2. Recién después, créala en **Authentication → Users → Add user**. Si te saltas el paso 1, la
+   creación falla con un mensaje de "Registro no permitido" (funcionando como debe).
+
+Además, sube el **mínimo de la contraseña de login** de 6 a al menos 10-12 caracteres en
+**Authentication → Sign In / Providers → Email → Minimum password length**. No afecta la clave
+maestra de la bóveda (esa ya exige 10+ desde la app).
 
 **Importante:** ningún sistema es 100% infalible. Evita reutilizar la clave maestra del equipo
 en otros sitios, y si alguien deja el equipo, cambia esa clave maestra (implica volver a guardar
