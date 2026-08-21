@@ -52,6 +52,7 @@ No hay backend propio que mantener: Supabase actúa como base de datos + autenti
    5. `migration_005_block_public_signup.sql`
    6. `migration_006_dynamic_links.sql`
    7. `migration_007_realtime.sql`
+   8. `migration_008_fix_signup_case_sensitivity.sql`
 
    Esto crea las tablas, los triggers y las políticas de seguridad (RLS). Si en el futuro
    agrego más migraciones numeradas, corre solo las que aún no hayas ejecutado.
