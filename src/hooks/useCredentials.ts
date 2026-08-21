@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { decryptText, encryptText } from '../lib/crypto'
-import type { Credential, CredentialFormValues, CredentialRow } from '../types'
+import type { Credential, CredentialFormValues, CredentialLink, CredentialRow } from '../types'
+
+/** Quita los pares nombre+link que quedaron completamente vacíos antes de guardar. */
+function cleanLinks(links: CredentialLink[]): CredentialLink[] {
+  return links
+    .map((l) => ({ label: l.label.trim(), value: l.value.trim() }))
+    .filter((l) => l.label || l.value)
+}
 
 export function useCredentials(vaultKey: CryptoKey | null, userId: string | undefined) {
   const [credentials, setCredentials] = useState<Credential[]>([])
@@ -48,6 +55,22 @@ export function useCredentials(vaultKey: CryptoKey | null, userId: string | unde
   useEffect(() => {
     refresh()
   }, [refresh])
+
+  // Actualizaciones en vivo: si otra persona (o tú mismo desde otra pestaña) crea, edita o
+  // elimina una credencial, se refleja acá sin tener que recargar la página. Realtime respeta
+  // las políticas de RLS, así que una credencial restringida no llega a quien no debería verla.
+  useEffect(() => {
+    if (!userId) return
+    const channel = supabase
+      .channel('credentials-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'credentials' }, () => {
+        refresh()
+      })
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [userId, refresh])
 
   /** Descifra la contraseña de una credencial puntual (bajo demanda, no todas de golpe). */
   const reveal = useCallback(
@@ -111,9 +134,8 @@ export function useCredentials(vaultKey: CryptoKey | null, userId: string | unde
           email: values.email,
           password_cipher: cipher,
           password_iv: iv,
-          url: values.url,
           category: values.category,
-          linked_to: values.linked_to,
+          links: cleanLinks(values.links),
           notes: values.notes,
           owner_id: values.owner_id,
           created_by: userId,
@@ -140,9 +162,8 @@ export function useCredentials(vaultKey: CryptoKey | null, userId: string | unde
           email: values.email,
           password_cipher: cipher,
           password_iv: iv,
-          url: values.url,
           category: values.category,
-          linked_to: values.linked_to,
+          links: cleanLinks(values.links),
           notes: values.notes,
           owner_id: values.owner_id,
         })

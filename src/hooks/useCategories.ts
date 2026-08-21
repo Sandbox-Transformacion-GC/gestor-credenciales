@@ -17,6 +17,19 @@ export function useCategories() {
     refresh()
   }, [refresh])
 
+  // Si el admin agrega/edita/borra una categoría, se refleja en vivo para todo el equipo.
+  useEffect(() => {
+    const channel = supabase
+      .channel('categories-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, () => {
+        refresh()
+      })
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [refresh])
+
   const create = useCallback(
     async (name: string, color: string) => {
       const sort_order = categories.length ? Math.max(...categories.map((c) => c.sort_order)) + 1 : 1

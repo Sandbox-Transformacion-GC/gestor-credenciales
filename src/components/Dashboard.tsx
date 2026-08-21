@@ -38,7 +38,8 @@ export default function Dashboard() {
       if (filters.ownerId !== 'Todos' && c.owner_id !== filters.ownerId) return false
       if (filters.onlyFavorites && !c.is_favorite) return false
       if (q) {
-        const haystack = `${c.title} ${c.email} ${c.linked_to ?? ''} ${c.notes ?? ''}`.toLowerCase()
+        const linksText = c.links.map((l) => `${l.label} ${l.value}`).join(' ')
+        const haystack = `${c.title} ${c.email} ${linksText} ${c.notes ?? ''}`.toLowerCase()
         if (!haystack.includes(q)) return false
       }
       return true

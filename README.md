@@ -6,13 +6,20 @@ Aplicación web privada para guardar contraseñas y correos del equipo, con:
 - **Bóveda cifrada**: cada contraseña se cifra en el navegador con **AES-256-GCM** usando una
   clave maestra que solo conocen las 3 personas. El servidor (Supabase) **nunca ve las
   contraseñas en texto plano**, solo el texto cifrado.
-- Ficha por credencial: servicio, correo, contraseña, **a qué está atado** (tarjeta, dominio,
-  cliente, etc.), **titular/responsable**, categoría, notas, favoritos.
-- Filtros por categoría, titular, favoritos y búsqueda de texto libre; orden por fecha o nombre.
+- Ficha por credencial: servicio, correo, contraseña, **enlaces/campos personalizados**
+  (nombre + link, repetibles con un botón "+" — para el sitio web, a qué está atado, endpoints
+  de una API, documentación, etc.), **titular/responsable**, categoría (editable por el admin),
+  notas, favoritos y orden personal por persona.
+- Filtros por categoría, titular, favoritos y búsqueda de texto libre; orden por fecha, nombre o
+  a mano (arrastrar y soltar).
+- Compartir credenciales con todo el equipo o solo con personas específicas.
+- **Actualizaciones en vivo**: si alguien más agrega, edita o elimina algo, se refleja al
+  instante sin recargar la página.
 - Generador de contraseñas seguras y medidor de fortaleza.
 - Auto-bloqueo tras 15 minutos de inactividad, copiar-al-portapapeles con autoborrado a los 20s,
-  registro de quién creó/editó cada credencial, papelera lógica (soft delete) en vez de borrado
-  irreversible.
+  registro de auditoría (quién creó/editó/compartió cada credencial), papelera lógica (soft
+  delete) en vez de borrado irreversible.
+- Modo oscuro/claro y vista de tarjetas o de lista, a elección de cada persona.
 
 ## Arquitectura
 
@@ -43,6 +50,8 @@ No hay backend propio que mantener: Supabase actúa como base de datos + autenti
    3. `migration_003_personal_favorites_order.sql`
    4. `migration_004_lock_ownership_fields.sql`
    5. `migration_005_block_public_signup.sql`
+   6. `migration_006_dynamic_links.sql`
+   7. `migration_007_realtime.sql`
 
    Esto crea las tablas, los triggers y las políticas de seguridad (RLS). Si en el futuro
    agrego más migraciones numeradas, corre solo las que aún no hayas ejecutado.

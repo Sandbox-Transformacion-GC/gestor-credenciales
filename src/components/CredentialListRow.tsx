@@ -142,8 +142,15 @@ export default function CredentialListRow({
         </button>
       </div>
 
-      <span className="truncate text-xs text-slate-500 dark:text-slate-400" title={credential.linked_to ?? ''}>
-        {credential.linked_to || '—'}
+      <span
+        className="truncate text-xs text-slate-500 dark:text-slate-400"
+        title={credential.links.map((l) => `${l.label}: ${l.value}`).join(' · ')}
+      >
+        {credential.links.length === 0
+          ? '—'
+          : credential.links.length === 1
+            ? credential.links[0].value || credential.links[0].label
+            : `${credential.links[0].value || credential.links[0].label} +${credential.links.length - 1}`}
       </span>
 
       <span className="truncate text-xs text-slate-500 dark:text-slate-400" title={profileName(profiles, credential.owner_id)}>

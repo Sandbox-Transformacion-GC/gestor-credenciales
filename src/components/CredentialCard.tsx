@@ -2,6 +2,7 @@ import { DragEvent, useState } from 'react'
 import type { Category, Credential, Profile } from '../types'
 import { copyWithAutoClear } from '../lib/clipboard'
 import { categoryBadgeClasses } from '../lib/colors'
+import { isLikelyUrl, toHref } from '../lib/links'
 
 function profileName(profiles: Profile[], id: string | null) {
   if (!id) return '—'
@@ -101,16 +102,6 @@ export default function CredentialCard({
               </span>
             )}
           </div>
-          {credential.url && (
-            <a
-              href={credential.url.startsWith('http') ? credential.url : `https://${credential.url}`}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="text-xs text-brand-600 hover:underline dark:text-brand-400"
-            >
-              {credential.url}
-            </a>
-          )}
         </div>
 
         <button
@@ -154,9 +145,25 @@ export default function CredentialCard({
           </div>
         </div>
 
-        {credential.linked_to && (
-          <div className="text-xs text-slate-500 dark:text-slate-400">
-            🔗 Atado a: <span className="text-slate-700 dark:text-slate-300">{credential.linked_to}</span>
+        {credential.links.length > 0 && (
+          <div className="space-y-0.5">
+            {credential.links.map((link, i) => (
+              <div key={i} className="truncate text-xs text-slate-500 dark:text-slate-400">
+                🔗 {link.label || 'Enlace'}:{' '}
+                {isLikelyUrl(link.value) ? (
+                  <a
+                    href={toHref(link.value)}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="text-brand-600 hover:underline dark:text-brand-400"
+                  >
+                    {link.value}
+                  </a>
+                ) : (
+                  <span className="text-slate-700 dark:text-slate-300">{link.value}</span>
+                )}
+              </div>
+            ))}
           </div>
         )}
         <div className="text-xs text-slate-500 dark:text-slate-400">

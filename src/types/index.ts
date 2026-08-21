@@ -14,6 +14,11 @@ export interface Category {
   sort_order: number
 }
 
+export interface CredentialLink {
+  label: string
+  value: string
+}
+
 // Fila cruda tal como viene de la base de datos (password aún cifrado).
 // credential_viewers viene embebido vía PostgREST (join automático).
 export interface CredentialRow {
@@ -22,9 +27,8 @@ export interface CredentialRow {
   email: string
   password_cipher: string
   password_iv: string
-  url: string | null
   category: string
-  linked_to: string | null
+  links: CredentialLink[]
   notes: string | null
   owner_id: string | null
   created_by: string
@@ -48,9 +52,8 @@ export interface CredentialFormValues {
   title: string
   email: string
   password: string
-  url: string
   category: string
-  linked_to: string
+  links: CredentialLink[]
   notes: string
   owner_id: string | null
   shared_with: string[] // [] = todo el equipo puede verla
@@ -60,9 +63,8 @@ export const emptyFormValues: CredentialFormValues = {
   title: '',
   email: '',
   password: '',
-  url: '',
   category: 'Otro',
-  linked_to: '',
+  links: [{ label: '', value: '' }],
   notes: '',
   owner_id: null,
   shared_with: [],

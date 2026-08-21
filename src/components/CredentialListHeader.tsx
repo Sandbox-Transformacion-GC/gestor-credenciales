@@ -9,7 +9,7 @@ export default function CredentialListHeader() {
       <span>Servicio</span>
       <span>Correo</span>
       <span>Contraseña</span>
-      <span>Atado a</span>
+      <span>Enlaces</span>
       <span>Titular</span>
       <span>Actualizado</span>
       <span className="text-right">Acciones</span>

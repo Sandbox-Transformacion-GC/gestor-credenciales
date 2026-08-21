@@ -38,9 +38,8 @@ export default function CredentialFormModal({
         title: editing.title,
         email: editing.email,
         password: editing.password ?? '',
-        url: editing.url ?? '',
         category: editing.category,
-        linked_to: editing.linked_to ?? '',
+        links: editing.links.length > 0 ? editing.links : [{ label: '', value: '' }],
         notes: editing.notes ?? '',
         owner_id: editing.owner_id,
         shared_with: editing.shared_with,
@@ -53,6 +52,18 @@ export default function CredentialFormModal({
 
   const set = <K extends keyof CredentialFormValues>(key: K, v: CredentialFormValues[K]) =>
     setValues((prev) => ({ ...prev, [key]: v }))
+
+  const setLink = (index: number, field: 'label' | 'value', v: string) => {
+    setValues((prev) => ({
+      ...prev,
+      links: prev.links.map((l, i) => (i === index ? { ...l, [field]: v } : l)),
+    }))
+  }
+
+  const addLink = () => setValues((prev) => ({ ...prev, links: [...prev.links, { label: '', value: '' }] }))
+
+  const removeLink = (index: number) =>
+    setValues((prev) => ({ ...prev, links: prev.links.filter((_, i) => i !== index) }))
 
   const toggleViewer = (profileId: string) => {
     set(
@@ -181,18 +192,36 @@ export default function CredentialFormModal({
             </div>
 
             <div className="col-span-2">
-              <label className={labelClass}>¿A qué está atado?</label>
-              <input
-                value={values.linked_to}
-                onChange={(e) => set('linked_to', e.target.value)}
-                className={inputClass}
-                placeholder="Ej: Tarjeta VISA 1234, dominio empresa.com, cuenta de Ads…"
-              />
-            </div>
-
-            <div className="col-span-2">
-              <label className={labelClass}>Sitio web (opcional)</label>
-              <input value={values.url} onChange={(e) => set('url', e.target.value)} className={inputClass} placeholder="https://…" />
+              <label className={labelClass}>Enlaces / a qué está atado</label>
+              <div className="space-y-2">
+                {values.links.map((link, i) => (
+                  <div key={i} className="flex gap-2">
+                    <input
+                      value={link.label}
+                      onChange={(e) => setLink(i, 'label', e.target.value)}
+                      className={`${inputClass} w-2/5`}
+                      placeholder="Ej: Sitio web, Panel admin, Tarjeta…"
+                    />
+                    <input
+                      value={link.value}
+                      onChange={(e) => setLink(i, 'value', e.target.value)}
+                      className={inputClass}
+                      placeholder="https://… o cualquier dato"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeLink(i)}
+                      title="Quitar este campo"
+                      className="shrink-0 rounded-lg border border-slate-300 px-2 text-sm text-slate-500 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-700"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button type="button" onClick={addLink} className="mt-2 text-xs font-medium text-brand-600 hover:underline dark:text-brand-400">
+                + Agregar otro campo
+              </button>
             </div>
 
             <div className="col-span-2">
