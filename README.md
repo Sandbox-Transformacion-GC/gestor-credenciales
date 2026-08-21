@@ -144,6 +144,12 @@ pasos.
   `anon key`, diseñada para exponerse en el navegador.
 - A nivel de base de datos, nadie puede reasignar de quién es una credencial ni tocar su fecha de
   creación desde fuera de la app (protegido con un trigger, no solo con la interfaz).
+- **Copia de seguridad** (⚙️ Configuración, solo admin): exporta toda la bóveda a un archivo. Las
+  contraseñas quedan en el archivo tal como están cifradas (nunca en texto plano), así que es tan
+  seguro como la base de datos misma. Sirve para recuperación ante desastres si Supabase llegara a
+  perder datos — el plan gratis tiene retención de backups limitada, así que exportar de vez en
+  cuando (y guardar el archivo en un lugar de confianza, ej. OneDrive del equipo) es la única red
+  de seguridad adicional que tienen hoy.
 
 ### ⚠️ Registro público: cerrado a nivel de base de datos
 

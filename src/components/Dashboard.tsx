@@ -212,7 +212,14 @@ export default function Dashboard() {
       )}
 
       {showGenerator && <PasswordGeneratorModal onClose={() => setShowGenerator(false)} />}
-      {showAdmin && <AdminPanel categoriesApi={categoriesApi} onClose={() => setShowAdmin(false)} />}
+      {showAdmin && profile && (
+        <AdminPanel
+          categoriesApi={categoriesApi}
+          currentUserId={profile.id}
+          currentUserEmail={profile.email}
+          onClose={() => setShowAdmin(false)}
+        />
+      )}
       {showChangePassword && <ChangePasswordModal onClose={() => setShowChangePassword(false)} />}
 
       {pendingDelete && (

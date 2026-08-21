@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { Category } from '../types'
 import { CATEGORY_COLOR_OPTIONS, categoryBadgeClasses } from '../lib/colors'
 import type { useCategories } from '../hooks/useCategories'
 import { modalCardClass, modalOverlayClass, primaryButtonClass, secondaryButtonClass } from '../lib/ui'
 import { useEscapeToClose } from '../hooks/useEscapeToClose'
+import { useBackup, ImportSummary } from '../hooks/useBackup'
 import ConfirmDialog from './ConfirmDialog'
 
 // Recibe las categorías y sus funciones desde afuera (una sola instancia compartida con el resto
@@ -12,9 +13,13 @@ import ConfirmDialog from './ConfirmDialog'
 // sin depender de Realtime ni de recargar la página.
 export default function AdminPanel({
   categoriesApi,
+  currentUserId,
+  currentUserEmail,
   onClose,
 }: {
   categoriesApi: ReturnType<typeof useCategories>
+  currentUserId: string
+  currentUserEmail: string | undefined
   onClose: () => void
 }) {
   const { categories, loading, create, rename, move, remove } = categoriesApi
@@ -24,7 +29,27 @@ export default function AdminPanel({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [pendingDelete, setPendingDelete] = useState<Category | null>(null)
 
+  const { working, exportBackup, importBackup } = useBackup(currentUserEmail)
+  const [backupError, setBackupError] = useState<string | null>(null)
+  const [importSummary, setImportSummary] = useState<ImportSummary | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   useEscapeToClose(onClose)
+
+  const handleExport = async () => {
+    setBackupError(null)
+    const err = await exportBackup()
+    if (err) setBackupError(err)
+  }
+
+  const handleImportFile = async (file: File) => {
+    setBackupError(null)
+    setImportSummary(null)
+    const { error: err, summary } = await importBackup(file, currentUserId)
+    if (err) setBackupError(err)
+    else setImportSummary(summary)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
 
   const handleCreate = async () => {
     if (!newName.trim()) return
@@ -48,11 +73,13 @@ export default function AdminPanel({
     <div className={`${modalOverlayClass} py-8`}>
       <div className={`max-h-full w-full max-w-lg overflow-y-auto p-6 ${modalCardClass}`}>
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">⚙️ Configuración — Categorías</h3>
+          <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">⚙️ Configuración</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300">
             ✕
           </button>
         </div>
+
+        <h4 className="mb-2 text-sm font-semibold text-slate-800 dark:text-slate-200">Categorías</h4>
 
         {error && <p className="mb-3 rounded-lg bg-red-50 p-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">{error}</p>}
 
@@ -149,6 +176,61 @@ export default function AdminPanel({
               Agregar
             </button>
           </div>
+        </div>
+
+        <div className="mt-6 border-t border-slate-200 pt-4 dark:border-slate-700">
+          <h4 className="mb-1 text-sm font-semibold text-slate-800 dark:text-slate-200">Copia de seguridad</h4>
+          <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
+            Exporta un archivo con toda la bóveda (por si Supabase llegara a fallar o perder datos).
+            Las contraseñas quedan en el archivo <strong>tal como están cifradas</strong> — nunca en
+            texto plano — así que es tan seguro como la base de datos misma, pero igual guárdalo en
+            un lugar de confianza.
+          </p>
+
+          {backupError && (
+            <p className="mb-2 rounded-lg bg-red-50 p-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">{backupError}</p>
+          )}
+          {importSummary && (
+            <div className="mb-2 rounded-lg bg-emerald-50 p-2 text-xs text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+              <p>
+                ✓ Restauradas {importSummary.imported} credenciales
+                {importSummary.skippedCategories > 0 && ` (${importSummary.skippedCategories} categorías ya existían)`}.
+              </p>
+              {importSummary.warnings.length > 0 && (
+                <ul className="mt-1 list-disc pl-4">
+                  {importSummary.warnings.map((w, i) => (
+                    <li key={i}>{w}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-2">
+            <button onClick={handleExport} disabled={working} className={secondaryButtonClass}>
+              {working ? 'Procesando…' : '⬇️ Exportar copia de seguridad'}
+            </button>
+
+            <label htmlFor="backup-import-file" className={`${secondaryButtonClass} cursor-pointer`}>
+              ⬆️ Restaurar desde copia
+            </label>
+            <input
+              id="backup-import-file"
+              ref={fileInputRef}
+              type="file"
+              accept="application/json"
+              className="hidden"
+              disabled={working}
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (file) handleImportFile(file)
+              }}
+            />
+          </div>
+          <p className="mt-2 text-[11px] text-slate-400 dark:text-slate-500">
+            Restaurar AGREGA las credenciales del archivo (no borra ni reemplaza lo que ya tienes) —
+            úsalo solo para recuperación ante desastres.
+          </p>
         </div>
 
         <div className="mt-5 flex justify-end">
