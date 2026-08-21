@@ -5,18 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <!--
-      Content-Security-Policy restrictiva (respaldo vía <meta>; la versión real que aplica el
-      navegador va como cabecera HTTP en vercel.json — un <meta> no puede imponer
-      frame-ancestors, por eso también está ahí):
+      Content-Security-Policy restrictiva (respaldo vía <meta> para cuando se corre local con
+      `vite preview` o similar; la versión que de verdad protege en producción va como cabecera
+      HTTP en vercel.json).
       - script-src/style-src: solo el propio origen (los estilos inline de Vite en dev quedan
         permitidos por 'unsafe-inline' solo para style, necesario por cómo Vite inyecta CSS).
       - connect-src: 'self' + el dominio exacto de este proyecto de Supabase (si alguna vez
         cambias de proyecto de Supabase, actualiza este dominio aquí Y en vercel.json).
       - object-src/base-uri: bloqueados por completo.
+      - frame-ancestors NO se pone aquí: los navegadores la ignoran (con warning en consola)
+        cuando la CSP viene por <meta>, solo funciona como cabecera HTTP — por eso vive
+        únicamente en vercel.json, que es donde sí aplica de verdad.
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://wibkzheavbyjxiwctkxz.supabase.co; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self';"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://wibkzheavbyjxiwctkxz.supabase.co; object-src 'none'; base-uri 'none'; form-action 'self';"
     />
     <title>Gestor de Credenciales</title>
   </head>
