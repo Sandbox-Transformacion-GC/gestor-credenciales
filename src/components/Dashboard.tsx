@@ -19,7 +19,8 @@ export default function Dashboard() {
   const { vaultKey, profile, profiles, isAdmin, session } = useVault()
   const { credentials, loading, error, reveal, hide, create, update, toggleFavorite, remove, reorder } =
     useCredentials(vaultKey, session?.user.id)
-  const { categories } = useCategories()
+  const categoriesApi = useCategories()
+  const { categories } = categoriesApi
   const { viewMode, setViewMode } = useViewMode()
 
   const [filters, setFilters] = useState<Filters>(defaultFilters)
@@ -210,7 +211,7 @@ export default function Dashboard() {
       )}
 
       {showGenerator && <PasswordGeneratorModal onClose={() => setShowGenerator(false)} />}
-      {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
+      {showAdmin && <AdminPanel categoriesApi={categoriesApi} onClose={() => setShowAdmin(false)} />}
       {showChangePassword && <ChangePasswordModal onClose={() => setShowChangePassword(false)} />}
 
       {pendingDelete && (

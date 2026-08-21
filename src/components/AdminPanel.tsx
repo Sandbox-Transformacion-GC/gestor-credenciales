@@ -1,11 +1,21 @@
 import { useState } from 'react'
 import type { Category } from '../types'
 import { CATEGORY_COLOR_OPTIONS, categoryBadgeClasses } from '../lib/colors'
-import { useCategories } from '../hooks/useCategories'
+import type { useCategories } from '../hooks/useCategories'
 import { modalCardClass, modalOverlayClass, primaryButtonClass, secondaryButtonClass } from '../lib/ui'
 
-export default function AdminPanel({ onClose }: { onClose: () => void }) {
-  const { categories, loading, create, rename, move, remove } = useCategories()
+// Recibe las categorías y sus funciones desde afuera (una sola instancia compartida con el resto
+// de la app, en vez de que este panel tenga su propia copia separada) — así, apenas agregas o
+// borras una categoría aquí, el filtro y el formulario de credenciales se enteran al instante,
+// sin depender de Realtime ni de recargar la página.
+export default function AdminPanel({
+  categoriesApi,
+  onClose,
+}: {
+  categoriesApi: ReturnType<typeof useCategories>
+  onClose: () => void
+}) {
+  const { categories, loading, create, rename, move, remove } = categoriesApi
   const [newName, setNewName] = useState('')
   const [newColor, setNewColor] = useState<string>('slate')
   const [error, setError] = useState<string | null>(null)
