@@ -96,21 +96,22 @@ git remote add origin https://github.com/TU-USUARIO/TU-REPO.git
 git push -u origin main
 ```
 
-Usa un **repositorio privado** en GitHub (Settings → General → Danger Zone si necesitas
-cambiarlo). El `.gitignore` ya excluye tu `.env`, así que las claves de Supabase no se suben.
+El `.gitignore` ya excluye tu `.env`, así que las claves de Supabase no se suben al repo.
+
+> El repo de este proyecto es público. Eso es seguro porque el código no contiene secretos (las
+> claves se inyectan al compilar) — pero si prefieres privado, ten en cuenta que Vercel/Netlify en
+> plan gratis no despliegan repos **privados de una organización** de GitHub (sí de una cuenta
+> personal). Si tu repo vive en una organización, o lo haces público o usas un plan pago.
 
 ## 4. Desplegar en Vercel (automático)
 
-El repo ahora es público dentro de la organización `Sandbox-Transformacion-GC`, así que no aplica
-la restricción del plan gratis de Vercel (esa solo bloquea repos **privados** de organizaciones).
-
 1. Entra a [vercel.com](https://vercel.com) → **Add New → Project**.
-2. Autoriza a Vercel a acceder a la organización `Sandbox-Transformacion-GC` de GitHub si te lo
-   pide, y selecciona el repo `gestor-credenciales`.
+2. Autoriza a Vercel a acceder a tu cuenta/organización de GitHub si te lo pide, y selecciona el
+   repo de este proyecto.
 3. Vercel detecta automáticamente que es un proyecto **Vite** — no cambies nada del build command
    ni del output directory por defecto.
 4. Antes de darle a Deploy (o después, en **Settings → Environment Variables**), agrega:
-   - `VITE_SUPABASE_URL` → `https://wibkzheavbyjxiwctkxz.supabase.co`
+   - `VITE_SUPABASE_URL` → la URL de tu proyecto de Supabase
    - `VITE_SUPABASE_ANON_KEY` → tu anon/public key de Supabase
 5. **Deploy**. En 1-2 minutos te da una URL final (algo como
    `https://gestor-credenciales.vercel.app`).
@@ -151,16 +152,11 @@ pasos.
   cuando (y guardar el archivo en un lugar de confianza, ej. OneDrive del equipo) es la única red
   de seguridad adicional que tienen hoy.
 
-### ⚠️ Registro público: cerrado a nivel de base de datos
+### ⚠️ Registro público: cerrado a nivel de base de datos, no en el dashboard
 
-En el dashboard de Supabase, "Enable email provider" controla login y registro **juntos** — no
-hay forma de dejar solo el login encendido desde ahí. Por eso el registro público NO se bloquea
-en el dashboard, sino con `migration_005_block_public_signup.sql`: crea una lista blanca de
-correos permitidos y rechaza (a nivel de base de datos, sin importar cómo esté configurado el
-dashboard) cualquier intento de registro con un correo que no esté en esa lista. Asegúrate de
-haberla corrido — si no, cualquiera que encuentre la `anon key` en el código del sitio (es
-pública por diseño) podría crearse una cuenta y leer las credenciales no restringidas a personas
-específicas.
+El dashboard de Supabase no permite dejar el login activado sin también permitir registro público,
+así que eso se cierra aparte con `migration_005_block_public_signup.sql` (lista blanca de correos
++ trigger). Confirma que la corriste.
 
 **Para agregar a una 4ta persona en el futuro:**
 1. SQL Editor: `insert into public.allowed_signup_emails (email) values ('correo@dominio.com');`

@@ -14,10 +14,9 @@ alter table public.profiles
   add column if not exists role text not null default 'member'
   check (role in ('admin', 'member'));
 
--- Marca como admin a la cuenta indicada. Si esta persona todavía no
--- tiene cuenta creada en Authentication -> Users, corre esta línea de
--- nuevo después de crearla.
-update public.profiles set role = 'admin' where email = 'admin@alfinbanco.pe';
+-- Reemplaza el correo de abajo por el de tu admin antes de correr este archivo. Si esa persona
+-- todavía no tiene cuenta creada en Authentication -> Users, corre esta línea de nuevo después.
+update public.profiles set role = 'admin' where email = 'REEMPLAZA_CON_EL_CORREO_DEL_ADMIN';
 
 create or replace function public.is_admin()
 returns boolean

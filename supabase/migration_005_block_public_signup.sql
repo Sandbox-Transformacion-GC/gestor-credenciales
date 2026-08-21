@@ -1,16 +1,8 @@
 -- =====================================================================
--- Migración 005: bloquea el registro público a nivel de base de datos.
---
--- Motivo: en esta versión del dashboard de Supabase, "Enable email
--- provider" controla LOGIN y REGISTRO juntos — no existe un switch
--- separado para permitir solo login. Como el login tiene que
--- funcionar, no se puede simplemente apagar ese switch.
---
--- En vez de depender de un ajuste del dashboard, esto agrega una
--- "lista blanca" de correos permitidos y un trigger que rechaza
--- CUALQUIER registro (así sea por la API pública, sin pasar por el
--- dashboard) cuyo correo no esté en esa lista. Funciona sin importar
--- cómo esté configurado "Enable email provider".
+-- Migración 005: bloquea el registro público a nivel de base de datos
+-- (el dashboard de Supabase no permite dejar solo el login activado sin
+-- también permitir registro). Lista blanca de correos + trigger que
+-- rechaza cualquier registro que no esté en ella.
 --
 -- Ejecutar en: Supabase Dashboard -> SQL Editor -> New query.
 -- =====================================================================

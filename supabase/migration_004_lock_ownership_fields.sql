@@ -1,21 +1,8 @@
 -- =====================================================================
--- Migración 004: cierra un hueco de seguridad encontrado en auditoría.
---
--- Problema: la policy de UPDATE de "credentials" usa "with check (true)",
--- es decir, cualquiera con permiso para editar una credencial ABIERTA
--- (visible para todo el equipo) podía, llamando directamente a la API
--- de Supabase (sin pasar por la interfaz de la app), cambiar el campo
--- created_by a su propio usuario. Como el trigger que protege el borrado
--- confía en created_by, eso le daba permiso para: 1) borrar esa
--- credencial aunque no fuera suya, y 2) restringir con quién está
--- compartida, ocultándosela al resto del equipo (incluido quien la
--- creó de verdad).
---
--- Esto NO es explotable desde la interfaz normal de la app (la app
--- nunca envía ese campo al editar), pero sí desde una llamada directa
--- a la API con las credenciales de cualquiera de los 3 usuarios. Se
--- cierra a nivel de base de datos, que es donde debe estar la defensa
--- real.
+-- Migración 004: evita que created_by/created_at de "credentials" se
+-- puedan modificar desde un UPDATE (solo un admin puede reasignar
+-- created_by). Sin esto, alguien con permiso de edición sobre una
+-- credencial abierta podía apropiarse de ella vía la API directa.
 --
 -- Ejecutar en: Supabase Dashboard -> SQL Editor -> New query.
 -- =====================================================================
