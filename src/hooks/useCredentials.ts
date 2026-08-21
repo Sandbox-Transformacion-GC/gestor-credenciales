@@ -72,23 +72,33 @@ export function useCredentials(vaultKey: CryptoKey | null, userId: string | unde
     }
   }, [userId, refresh])
 
-  /** Descifra la contraseña de una credencial puntual (bajo demanda, no todas de golpe). */
-  const reveal = useCallback(
+  /** Descifra sin tocar el estado visible — para copiar sin mostrar la contraseña en pantalla. */
+  const decryptOnly = useCallback(
     async (id: string): Promise<string | null> => {
       if (!vaultKey) return null
       const target = credentials.find((c) => c.id === id)
       if (!target) return null
       if (target.password !== null) return target.password
       try {
-        const plain = await decryptText(target.password_cipher, target.password_iv, vaultKey)
-        setCredentials((prev) => prev.map((c) => (c.id === id ? { ...c, password: plain } : c)))
-        return plain
+        return await decryptText(target.password_cipher, target.password_iv, vaultKey)
       } catch {
         setError('No se pudo descifrar esta contraseña con la clave maestra actual.')
         return null
       }
     },
     [credentials, vaultKey],
+  )
+
+  /** Descifra Y la muestra en pantalla (botón "Ver"). */
+  const reveal = useCallback(
+    async (id: string): Promise<string | null> => {
+      const plain = await decryptOnly(id)
+      if (plain !== null) {
+        setCredentials((prev) => prev.map((c) => (c.id === id ? { ...c, password: plain } : c)))
+      }
+      return plain
+    },
+    [decryptOnly],
   )
 
   const hide = useCallback((id: string) => {
@@ -224,5 +234,5 @@ export function useCredentials(vaultKey: CryptoKey | null, userId: string | unde
     [logAction],
   )
 
-  return { credentials, loading, error, refresh, reveal, hide, create, update, toggleFavorite, remove, reorder }
+  return { credentials, loading, error, refresh, reveal, decryptOnly, hide, create, update, toggleFavorite, remove, reorder }
 }

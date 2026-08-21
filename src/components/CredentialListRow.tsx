@@ -28,6 +28,7 @@ export default function CredentialListRow({
   onDragOver,
   onDrop,
   onReveal,
+  onCopyPassword,
   onHide,
   onEdit,
   onDelete,
@@ -43,6 +44,8 @@ export default function CredentialListRow({
   onDragOver?: (e: DragEvent<HTMLDivElement>) => void
   onDrop?: (e: DragEvent<HTMLDivElement>) => void
   onReveal: (id: string) => void
+  /** Descifra sin cambiar lo que se ve en pantalla — usado solo para copiar. */
+  onCopyPassword: (id: string) => Promise<string | null>
   onHide: (id: string) => void
   onEdit: (c: Credential) => void
   onDelete: (c: Credential) => void
@@ -50,6 +53,7 @@ export default function CredentialListRow({
 }) {
   const [copied, setCopied] = useState<'email' | 'password' | null>(null)
   const [revealing, setRevealing] = useState(false)
+  const [copying, setCopying] = useState(false)
 
   const canDelete = credential.created_by === currentUserId || isAdmin
   const isRestricted = credential.shared_with.length > 0
@@ -65,12 +69,13 @@ export default function CredentialListRow({
   }
 
   const handleCopy = async (kind: 'email' | 'password') => {
-    const value = kind === 'email' ? credential.email : credential.password
-    if (kind === 'password' && value === null) {
-      setRevealing(true)
-      await onReveal(credential.id)
-      setRevealing(false)
-      return
+    let value: string | null
+    if (kind === 'email') {
+      value = credential.email
+    } else {
+      setCopying(true)
+      value = await onCopyPassword(credential.id)
+      setCopying(false)
     }
     if (!value) return
     const ok = await copyWithAutoClear(value)
@@ -136,9 +141,10 @@ export default function CredentialListRow({
         </button>
         <button
           onClick={() => handleCopy('password')}
-          className="shrink-0 rounded-md border border-slate-200 px-1.5 py-0.5 text-[11px] text-slate-500 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-700"
+          disabled={copying}
+          className="shrink-0 rounded-md border border-slate-200 px-1.5 py-0.5 text-[11px] text-slate-500 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-700"
         >
-          {copied === 'password' ? '✓' : 'Copiar'}
+          {copying ? '…' : copied === 'password' ? '✓' : 'Copiar'}
         </button>
       </div>
 

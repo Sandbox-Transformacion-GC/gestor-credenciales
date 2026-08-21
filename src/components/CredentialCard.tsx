@@ -28,6 +28,7 @@ export default function CredentialCard({
   onDragOver,
   onDrop,
   onReveal,
+  onCopyPassword,
   onHide,
   onEdit,
   onDelete,
@@ -43,6 +44,8 @@ export default function CredentialCard({
   onDragOver?: (e: DragEvent<HTMLDivElement>) => void
   onDrop?: (e: DragEvent<HTMLDivElement>) => void
   onReveal: (id: string) => void
+  /** Descifra sin cambiar lo que se ve en pantalla — usado solo para copiar. */
+  onCopyPassword: (id: string) => Promise<string | null>
   onHide: (id: string) => void
   onEdit: (c: Credential) => void
   onDelete: (c: Credential) => void
@@ -50,6 +53,7 @@ export default function CredentialCard({
 }) {
   const [copied, setCopied] = useState<'email' | 'password' | null>(null)
   const [revealing, setRevealing] = useState(false)
+  const [copying, setCopying] = useState(false)
 
   const canDelete = credential.created_by === currentUserId || isAdmin
   const isRestricted = credential.shared_with.length > 0
@@ -65,12 +69,13 @@ export default function CredentialCard({
   }
 
   const handleCopy = async (kind: 'email' | 'password') => {
-    const value = kind === 'email' ? credential.email : credential.password
-    if (kind === 'password' && value === null) {
-      setRevealing(true)
-      await onReveal(credential.id)
-      setRevealing(false)
-      return // el usuario puede copiar en el segundo click, ya revelada
+    let value: string | null
+    if (kind === 'email') {
+      value = credential.email
+    } else {
+      setCopying(true)
+      value = await onCopyPassword(credential.id)
+      setCopying(false)
     }
     if (!value) return
     const ok = await copyWithAutoClear(value)
@@ -138,9 +143,10 @@ export default function CredentialCard({
             </button>
             <button
               onClick={() => handleCopy('password')}
-              className="rounded-md border border-slate-200 px-2 py-0.5 text-xs text-slate-500 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-700"
+              disabled={copying}
+              className="rounded-md border border-slate-200 px-2 py-0.5 text-xs text-slate-500 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-700"
             >
-              {copied === 'password' ? 'Copiado ✓' : 'Copiar'}
+              {copying ? '…' : copied === 'password' ? 'Copiado ✓' : 'Copiar'}
             </button>
           </div>
         </div>

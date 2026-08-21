@@ -17,7 +17,7 @@ import type { Credential, CredentialFormValues } from '../types'
 
 export default function Dashboard() {
   const { vaultKey, profile, profiles, isAdmin, session } = useVault()
-  const { credentials, loading, error, reveal, hide, create, update, toggleFavorite, remove, reorder } =
+  const { credentials, loading, error, reveal, decryptOnly, hide, create, update, toggleFavorite, remove, reorder } =
     useCredentials(vaultKey, session?.user.id)
   const categoriesApi = useCategories()
   const { categories } = categoriesApi
@@ -164,6 +164,7 @@ export default function Dashboard() {
                 onDragOver={handleDragOver}
                 onDrop={handleDrop(c.id)}
                 onReveal={(id) => reveal(id)}
+                onCopyPassword={decryptOnly}
                 onHide={hide}
                 onEdit={openEdit}
                 onDelete={setPendingDelete}
@@ -188,6 +189,7 @@ export default function Dashboard() {
                   onDragOver={handleDragOver}
                   onDrop={handleDrop(c.id)}
                   onReveal={(id) => reveal(id)}
+                  onCopyPassword={decryptOnly}
                   onHide={hide}
                   onEdit={openEdit}
                   onDelete={setPendingDelete}
