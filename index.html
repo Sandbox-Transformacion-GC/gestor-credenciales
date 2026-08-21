@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <!--
+      Content-Security-Policy restrictiva:
+      - script-src/style-src: solo el propio origen (los estilos inline de Vite en dev quedan
+        permitidos por 'unsafe-inline' solo para style, necesario por cómo Vite inyecta CSS).
+      - connect-src: 'self' + https: para permitir la llamada a tu proyecto Supabase
+        (el dominio exacto *.supabase.co varía por proyecto).
+      - object-src/base-uri: bloqueados por completo.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self';"
+    />
+    <title>Gestor de Credenciales</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

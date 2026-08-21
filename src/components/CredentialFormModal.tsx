@@ -1,0 +1,295 @@
+import { FormEvent, useEffect, useState } from 'react'
+import { Category, Credential, CredentialFormValues, Profile, emptyFormValues } from '../types'
+import { estimatePasswordStrength, generatePassword } from '../lib/crypto'
+
+const STRENGTH_COLORS = ['bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-lime-500', 'bg-emerald-500']
+
+export default function CredentialFormModal({
+  editing,
+  profiles,
+  categories,
+  currentUserId,
+  isAdmin,
+  onSave,
+  onClose,
+}: {
+  editing: Credential | null
+  profiles: Profile[]
+  categories: Category[]
+  currentUserId: string | undefined
+  isAdmin: boolean
+  onSave: (values: CredentialFormValues, canEditSharing: boolean) => Promise<string | null>
+  onClose: () => void
+}) {
+  const [values, setValues] = useState<CredentialFormValues>(emptyFormValues)
+  const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [loadingPlain, setLoadingPlain] = useState(false)
+
+  // Al crear una credencial nueva, el creador siempre puede definir con quién compartirla.
+  // Al editar una existente, solo el creador original o el admin pueden cambiar esa lista.
+  const canEditSharing = !editing || editing.created_by === currentUserId || isAdmin
+
+  useEffect(() => {
+    if (editing) {
+      setValues({
+        title: editing.title,
+        email: editing.email,
+        password: editing.password ?? '',
+        url: editing.url ?? '',
+        category: editing.category,
+        linked_to: editing.linked_to ?? '',
+        notes: editing.notes ?? '',
+        owner_id: editing.owner_id,
+        shared_with: editing.shared_with,
+      })
+      setLoadingPlain(editing.password === null)
+    } else {
+      setValues({ ...emptyFormValues, owner_id: currentUserId ?? null })
+    }
+  }, [editing, currentUserId])
+
+  const set = <K extends keyof CredentialFormValues>(key: K, v: CredentialFormValues[K]) =>
+    setValues((prev) => ({ ...prev, [key]: v }))
+
+  const toggleViewer = (profileId: string) => {
+    set(
+      'shared_with',
+      values.shared_with.includes(profileId)
+        ? values.shared_with.filter((id) => id !== profileId)
+        : [...values.shared_with, profileId],
+    )
+  }
+
+  const handleGenerate = () => {
+    const pwd = generatePassword({ length: 16, uppercase: true, lowercase: true, numbers: true, symbols: true })
+    set('password', pwd)
+    setShowPassword(true)
+  }
+
+  const strength = values.password ? estimatePasswordStrength(values.password) : null
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    if (!values.password) {
+      setError('La contraseña no puede estar vacía.')
+      return
+    }
+    setSaving(true)
+    const err = await onSave(values, canEditSharing)
+    setSaving(false)
+    if (err) setError(err)
+    else onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/40 px-4 py-8">
+      <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
+        <h3 className="mb-4 text-base font-semibold text-slate-900">
+          {editing ? 'Editar credencial' : 'Nueva credencial'}
+        </h3>
+
+        {editing && loadingPlain && (
+          <p className="mb-3 rounded-lg bg-amber-50 p-2 text-xs text-amber-700">
+            Cargando la contraseña actual descifrada… si no aparece, ábrela primero con "Ver" en la tarjeta.
+          </p>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2">
+              <label className="mb-1 block text-xs font-medium text-slate-700">Servicio / Nombre *</label>
+              <input
+                required
+                value={values.title}
+                onChange={(e) => set('title', e.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+                placeholder="Ej: Netflix, Banco Pichincha, Gmail principal…"
+              />
+            </div>
+
+            <div className="col-span-2">
+              <label className="mb-1 block text-xs font-medium text-slate-700">Correo / usuario</label>
+              <input
+                value={values.email}
+                onChange={(e) => set('email', e.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+                placeholder="correo@dominio.com"
+              />
+            </div>
+
+            <div className="col-span-2">
+              <label className="mb-1 block text-xs font-medium text-slate-700">Contraseña *</label>
+              <div className="flex gap-2">
+                <input
+                  required
+                  type={showPassword ? 'text' : 'password'}
+                  value={values.password}
+                  onChange={(e) => set('password', e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="shrink-0 rounded-lg border border-slate-300 px-2 text-xs text-slate-600 hover:bg-slate-50"
+                >
+                  {showPassword ? 'Ocultar' : 'Ver'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleGenerate}
+                  className="shrink-0 rounded-lg border border-slate-300 px-2 text-xs text-slate-600 hover:bg-slate-50"
+                >
+                  🎲 Generar
+                </button>
+              </div>
+              {strength && (
+                <div className="mt-1.5 flex items-center gap-2">
+                  <div className="flex h-1.5 flex-1 gap-1">
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <span
+                        key={i}
+                        className={`h-full flex-1 rounded-full ${i <= strength.score ? STRENGTH_COLORS[strength.score] : 'bg-slate-200'}`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-[11px] text-slate-500">{strength.label}</span>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-700">Categoría</label>
+              <select
+                value={values.category}
+                onChange={(e) => set('category', e.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              >
+                {categories.map((c) => (
+                  <option key={c.id} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+                {/* por si la credencial tiene una categoría que ya fue borrada por el admin */}
+                {!categories.some((c) => c.name === values.category) && values.category && (
+                  <option value={values.category}>{values.category} (eliminada)</option>
+                )}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-700">Titular / Responsable</label>
+              <select
+                value={values.owner_id ?? ''}
+                onChange={(e) => set('owner_id', e.target.value || null)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              >
+                <option value="">Sin asignar</option>
+                {profiles.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.full_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-span-2">
+              <label className="mb-1 block text-xs font-medium text-slate-700">¿A qué está atado?</label>
+              <input
+                value={values.linked_to}
+                onChange={(e) => set('linked_to', e.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                placeholder="Ej: Tarjeta VISA 1234, dominio empresa.com, cuenta de Ads…"
+              />
+            </div>
+
+            <div className="col-span-2">
+              <label className="mb-1 block text-xs font-medium text-slate-700">Sitio web (opcional)</label>
+              <input
+                value={values.url}
+                onChange={(e) => set('url', e.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                placeholder="https://…"
+              />
+            </div>
+
+            <div className="col-span-2">
+              <label className="mb-1 block text-xs font-medium text-slate-700">Notas</label>
+              <textarea
+                value={values.notes}
+                onChange={(e) => set('notes', e.target.value)}
+                rows={2}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div className="col-span-2 rounded-lg border border-slate-200 p-3">
+              <p className="mb-2 text-xs font-medium text-slate-700">¿Quién puede ver esta contraseña?</p>
+              {!canEditSharing && (
+                <p className="mb-2 text-[11px] text-slate-400">
+                  Solo quien creó esta credencial o un administrador pueden cambiar esto.
+                </p>
+              )}
+              <label className="flex items-center gap-2 text-sm text-slate-600">
+                <input
+                  type="radio"
+                  disabled={!canEditSharing}
+                  checked={values.shared_with.length === 0}
+                  onChange={() => set('shared_with', [])}
+                />
+                Todo el equipo
+              </label>
+              <label className="mt-1 flex items-center gap-2 text-sm text-slate-600">
+                <input
+                  type="radio"
+                  disabled={!canEditSharing}
+                  checked={values.shared_with.length > 0}
+                  onChange={() => set('shared_with', profiles.filter((p) => p.id !== currentUserId).map((p) => p.id))}
+                />
+                Solo personas específicas
+              </label>
+
+              {values.shared_with.length > 0 && (
+                <div className="ml-6 mt-2 space-y-1">
+                  {profiles.map((p) => (
+                    <label key={p.id} className="flex items-center gap-2 text-sm text-slate-600">
+                      <input
+                        type="checkbox"
+                        disabled={!canEditSharing || p.id === currentUserId}
+                        checked={p.id === currentUserId || values.shared_with.includes(p.id)}
+                        onChange={() => toggleViewer(p.id)}
+                      />
+                      {p.full_name}
+                      {p.id === currentUserId && <span className="text-[11px] text-slate-400">(tú, siempre incluido)</span>}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {error && <p className="text-sm text-red-600">{error}</p>}
+
+          <div className="mt-4 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="rounded-lg bg-brand-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+            >
+              {saving ? 'Guardando…' : 'Guardar'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
