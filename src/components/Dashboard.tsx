@@ -2,9 +2,11 @@ import { DragEvent, useMemo, useRef, useState } from 'react'
 import { useVault } from '../contexts/VaultContext'
 import { useCredentials } from '../hooks/useCredentials'
 import { useCategories } from '../hooks/useCategories'
+import { useViewMode } from '../hooks/useViewMode'
 import Header from './Header'
 import Toolbar, { defaultFilters, Filters } from './Toolbar'
 import CredentialCard from './CredentialCard'
+import CredentialListRow from './CredentialListRow'
 import CredentialFormModal from './CredentialFormModal'
 import PasswordGeneratorModal from './PasswordGeneratorModal'
 import AdminPanel from './AdminPanel'
@@ -17,6 +19,7 @@ export default function Dashboard() {
   const { credentials, loading, error, reveal, hide, create, update, toggleFavorite, remove, reorder } =
     useCredentials(vaultKey, session?.user.id)
   const { categories } = useCategories()
+  const { viewMode, setViewMode } = useViewMode()
 
   const [filters, setFilters] = useState<Filters>(defaultFilters)
   const [showForm, setShowForm] = useState(false)
@@ -81,7 +84,8 @@ export default function Dashboard() {
     setPendingDelete(null)
   }
 
-  // Arrastrar y soltar para reordenar (solo activo cuando el filtro de orden es "custom").
+  // Arrastrar y soltar para reordenar (solo activo cuando el filtro de orden es "custom");
+  // funciona igual en la vista de tarjetas y en la de lista.
   const dragEnabled = filters.sortBy === 'custom'
 
   const handleDragStart = (id: string) => (e: DragEvent<HTMLDivElement>) => {
@@ -122,27 +126,51 @@ export default function Dashboard() {
           onChange={setFilters}
           profiles={profiles}
           categories={categories}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
           total={credentials.length}
           shown={filtered.length}
           onAdd={openNew}
         />
 
         {error && (
-          <p className="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>
+          <p className="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">{error}</p>
         )}
 
         {loading ? (
-          <p className="py-16 text-center text-sm text-slate-400">Cargando credenciales…</p>
+          <p className="py-16 text-center text-sm text-slate-400 dark:text-slate-500">Cargando credenciales…</p>
         ) : filtered.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-300 py-16 text-center text-sm text-slate-400">
+          <div className="rounded-xl border border-dashed border-slate-300 py-16 text-center text-sm text-slate-400 dark:border-slate-700 dark:text-slate-500">
             {credentials.length === 0
               ? 'Todavía no hay credenciales guardadas. Crea la primera con "+ Nueva credencial".'
               : 'Ningún resultado coincide con los filtros actuales.'}
           </div>
-        ) : (
+        ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((c) => (
               <CredentialCard
+                key={c.id}
+                credential={c}
+                profiles={profiles}
+                categories={categories}
+                currentUserId={profile?.id}
+                isAdmin={isAdmin}
+                draggable={dragEnabled}
+                onDragStart={handleDragStart(c.id)}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop(c.id)}
+                onReveal={(id) => reveal(id)}
+                onHide={hide}
+                onEdit={openEdit}
+                onDelete={setPendingDelete}
+                onToggleFavorite={toggleFavorite}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {filtered.map((c) => (
+              <CredentialListRow
                 key={c.id}
                 credential={c}
                 profiles={profiles}

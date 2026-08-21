@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Category } from '../types'
 import { CATEGORY_COLOR_OPTIONS, categoryBadgeClasses } from '../lib/colors'
 import { useCategories } from '../hooks/useCategories'
+import { modalCardClass, modalOverlayClass, primaryButtonClass, secondaryButtonClass } from '../lib/ui'
 
 export default function AdminPanel({ onClose }: { onClose: () => void }) {
   const { categories, loading, create, rename, move, remove } = useCategories()
@@ -28,35 +29,35 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/40 px-4 py-8">
-      <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
+    <div className={`${modalOverlayClass} py-8`}>
+      <div className={`max-h-full w-full max-w-lg overflow-y-auto p-6 ${modalCardClass}`}>
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-base font-semibold text-slate-900">⚙️ Configuración — Categorías</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+          <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">⚙️ Configuración — Categorías</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300">
             ✕
           </button>
         </div>
 
-        {error && <p className="mb-3 rounded-lg bg-red-50 p-2 text-sm text-red-700">{error}</p>}
+        {error && <p className="mb-3 rounded-lg bg-red-50 p-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">{error}</p>}
 
         {loading ? (
-          <p className="text-sm text-slate-400">Cargando…</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500">Cargando…</p>
         ) : (
           <ul className="mb-4 space-y-1.5">
             {categories.map((c, i) => (
-              <li key={c.id} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2">
+              <li key={c.id} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-700">
                 <div className="flex flex-col">
                   <button
                     disabled={i === 0}
                     onClick={() => move(c.id, 'up')}
-                    className="text-xs text-slate-400 hover:text-slate-700 disabled:opacity-20"
+                    className="text-xs text-slate-400 hover:text-slate-700 disabled:opacity-20 dark:text-slate-500 dark:hover:text-slate-200"
                   >
                     ▲
                   </button>
                   <button
                     disabled={i === categories.length - 1}
                     onClick={() => move(c.id, 'down')}
-                    className="text-xs text-slate-400 hover:text-slate-700 disabled:opacity-20"
+                    className="text-xs text-slate-400 hover:text-slate-700 disabled:opacity-20 dark:text-slate-500 dark:hover:text-slate-200"
                   >
                     ▼
                   </button>
@@ -80,13 +81,13 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                     <div className="ml-auto flex gap-1">
                       <button
                         onClick={() => setEditingId(c.id)}
-                        className="rounded-md px-2 py-1 text-xs font-medium text-brand-600 hover:bg-brand-50"
+                        className="rounded-md px-2 py-1 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-slate-700"
                       >
                         Editar
                       </button>
                       <button
                         onClick={() => handleDelete(c)}
-                        className="rounded-md px-2 py-1 text-xs font-medium text-red-500 hover:bg-red-50"
+                        className="rounded-md px-2 py-1 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-slate-700"
                       >
                         Eliminar
                       </button>
@@ -98,19 +99,19 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
           </ul>
         )}
 
-        <div className="rounded-lg border border-dashed border-slate-300 p-3">
-          <p className="mb-2 text-xs font-medium text-slate-700">Nueva categoría</p>
+        <div className="rounded-lg border border-dashed border-slate-300 p-3 dark:border-slate-600">
+          <p className="mb-2 text-xs font-medium text-slate-700 dark:text-slate-300">Nueva categoría</p>
           <div className="flex gap-2">
             <input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="Nombre"
-              className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm"
+              className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
             />
             <select
               value={newColor}
               onChange={(e) => setNewColor(e.target.value)}
-              className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+              className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
             >
               {CATEGORY_COLOR_OPTIONS.map((c) => (
                 <option key={c} value={c}>
@@ -118,20 +119,14 @@ export default function AdminPanel({ onClose }: { onClose: () => void }) {
                 </option>
               ))}
             </select>
-            <button
-              onClick={handleCreate}
-              className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-700"
-            >
+            <button onClick={handleCreate} className={primaryButtonClass}>
               Agregar
             </button>
           </div>
         </div>
 
         <div className="mt-5 flex justify-end">
-          <button
-            onClick={onClose}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
+          <button onClick={onClose} className={secondaryButtonClass}>
             Cerrar
           </button>
         </div>
@@ -156,19 +151,23 @@ function EditRow({
       <input
         value={name}
         onChange={(e) => setName(e.target.value)}
-        className="flex-1 rounded-lg border border-slate-300 px-2 py-1 text-sm"
+        className="flex-1 rounded-lg border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
       />
-      <select value={color} onChange={(e) => setColor(e.target.value)} className="rounded-lg border border-slate-300 px-2 py-1 text-sm">
+      <select
+        value={color}
+        onChange={(e) => setColor(e.target.value)}
+        className="rounded-lg border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+      >
         {CATEGORY_COLOR_OPTIONS.map((c) => (
           <option key={c} value={c}>
             {c}
           </option>
         ))}
       </select>
-      <button onClick={() => onSave(name, color)} className="text-xs font-medium text-brand-600">
+      <button onClick={() => onSave(name, color)} className="text-xs font-medium text-brand-600 dark:text-brand-400">
         Guardar
       </button>
-      <button onClick={onCancel} className="text-xs text-slate-400">
+      <button onClick={onCancel} className="text-xs text-slate-400 dark:text-slate-500">
         Cancelar
       </button>
     </div>

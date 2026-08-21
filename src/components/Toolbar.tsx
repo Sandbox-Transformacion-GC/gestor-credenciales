@@ -1,4 +1,5 @@
 import { Category, Profile } from '../types'
+import type { ViewMode } from '../hooks/useViewMode'
 
 export interface Filters {
   search: string
@@ -16,11 +17,16 @@ export const defaultFilters: Filters = {
   sortBy: 'updated_desc',
 }
 
+const selectClass =
+  'rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200'
+
 export default function Toolbar({
   filters,
   onChange,
   profiles,
   categories,
+  viewMode,
+  onViewModeChange,
   total,
   shown,
   onAdd,
@@ -29,6 +35,8 @@ export default function Toolbar({
   onChange: (f: Filters) => void
   profiles: Profile[]
   categories: Category[]
+  viewMode: ViewMode
+  onViewModeChange: (v: ViewMode) => void
   total: number
   shown: number
   onAdd: () => void
@@ -46,7 +54,7 @@ export default function Toolbar({
             value={filters.search}
             onChange={(e) => set('search', e.target.value)}
             placeholder="Buscar por servicio, correo, a qué está atado…"
-            className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+            className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
           />
         </div>
         <button
@@ -58,22 +66,14 @@ export default function Toolbar({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <select
-          value={filters.category}
-          onChange={(e) => set('category', e.target.value)}
-          className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm"
-        >
+        <select value={filters.category} onChange={(e) => set('category', e.target.value)} className={selectClass}>
           <option>Todas</option>
           {categories.map((c) => (
             <option key={c.id}>{c.name}</option>
           ))}
         </select>
 
-        <select
-          value={filters.ownerId}
-          onChange={(e) => set('ownerId', e.target.value)}
-          className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm"
-        >
+        <select value={filters.ownerId} onChange={(e) => set('ownerId', e.target.value)} className={selectClass}>
           <option value="Todos">Titular: todos</option>
           {profiles.map((p) => (
             <option key={p.id} value={p.id}>
@@ -85,7 +85,7 @@ export default function Toolbar({
         <select
           value={filters.sortBy}
           onChange={(e) => set('sortBy', e.target.value as Filters['sortBy'])}
-          className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm"
+          className={selectClass}
         >
           <option value="updated_desc">Más recientes primero</option>
           <option value="title_asc">Nombre (A-Z)</option>
@@ -93,7 +93,7 @@ export default function Toolbar({
           <option value="custom">Mi orden (arrastrar para ordenar)</option>
         </select>
 
-        <label className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm">
+        <label className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
           <input
             type="checkbox"
             checked={filters.onlyFavorites}
@@ -102,14 +102,31 @@ export default function Toolbar({
           ⭐ Solo mis favoritos
         </label>
 
-        <span className="ml-auto text-xs text-slate-400">
+        <div className="flex overflow-hidden rounded-lg border border-slate-300 dark:border-slate-600">
+          <button
+            onClick={() => onViewModeChange('grid')}
+            title="Vista de tarjetas"
+            className={`px-2.5 py-1.5 text-sm ${viewMode === 'grid' ? 'bg-brand-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'}`}
+          >
+            ▦
+          </button>
+          <button
+            onClick={() => onViewModeChange('list')}
+            title="Vista de lista"
+            className={`px-2.5 py-1.5 text-sm ${viewMode === 'list' ? 'bg-brand-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'}`}
+          >
+            ☰
+          </button>
+        </div>
+
+        <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">
           Mostrando {shown} de {total}
         </span>
       </div>
 
       {filters.sortBy === 'custom' && (
-        <p className="text-xs text-slate-400">
-          🖐️ Arrastra las tarjetas para ordenarlas a tu gusto — este orden es solo tuyo, nadie más lo ve.
+        <p className="text-xs text-slate-400 dark:text-slate-500">
+          🖐️ Arrastra para ordenar a tu gusto — este orden es solo tuyo, nadie más lo ve.
         </p>
       )}
     </div>

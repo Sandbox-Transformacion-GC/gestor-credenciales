@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { Category, Credential, CredentialFormValues, Profile, emptyFormValues } from '../types'
 import { estimatePasswordStrength, generatePassword } from '../lib/crypto'
+import { inputClass, labelClass, modalCardClass, modalOverlayClass, primaryButtonClass, secondaryButtonClass, selectClass } from '../lib/ui'
 
 const STRENGTH_COLORS = ['bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-lime-500', 'bg-emerald-500']
 
@@ -85,14 +86,14 @@ export default function CredentialFormModal({
   }
 
   return (
-    <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/40 px-4 py-8">
-      <div className="max-h-full w-full max-w-lg overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
-        <h3 className="mb-4 text-base font-semibold text-slate-900">
+    <div className={`${modalOverlayClass} py-8`}>
+      <div className={`max-h-full w-full max-w-lg overflow-y-auto p-6 ${modalCardClass}`}>
+        <h3 className="mb-4 text-base font-semibold text-slate-900 dark:text-slate-100">
           {editing ? 'Editar credencial' : 'Nueva credencial'}
         </h3>
 
         {editing && loadingPlain && (
-          <p className="mb-3 rounded-lg bg-amber-50 p-2 text-xs text-amber-700">
+          <p className="mb-3 rounded-lg bg-amber-50 p-2 text-xs text-amber-700 dark:bg-amber-950 dark:text-amber-300">
             Cargando la contraseña actual descifrada… si no aparece, ábrela primero con "Ver" en la tarjeta.
           </p>
         )}
@@ -100,48 +101,40 @@ export default function CredentialFormModal({
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
-              <label className="mb-1 block text-xs font-medium text-slate-700">Servicio / Nombre *</label>
+              <label className={labelClass}>Servicio / Nombre *</label>
               <input
                 required
                 value={values.title}
                 onChange={(e) => set('title', e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+                className={inputClass}
                 placeholder="Ej: Netflix, Banco Pichincha, Gmail principal…"
               />
             </div>
 
             <div className="col-span-2">
-              <label className="mb-1 block text-xs font-medium text-slate-700">Correo / usuario</label>
+              <label className={labelClass}>Correo / usuario</label>
               <input
                 value={values.email}
                 onChange={(e) => set('email', e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+                className={inputClass}
                 placeholder="correo@dominio.com"
               />
             </div>
 
             <div className="col-span-2">
-              <label className="mb-1 block text-xs font-medium text-slate-700">Contraseña *</label>
+              <label className={labelClass}>Contraseña *</label>
               <div className="flex gap-2">
                 <input
                   required
                   type={showPassword ? 'text' : 'password'}
                   value={values.password}
                   onChange={(e) => set('password', e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200"
+                  className={`${inputClass} font-mono`}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="shrink-0 rounded-lg border border-slate-300 px-2 text-xs text-slate-600 hover:bg-slate-50"
-                >
+                <button type="button" onClick={() => setShowPassword((v) => !v)} className={`shrink-0 ${secondaryButtonClass} px-2 py-2`}>
                   {showPassword ? 'Ocultar' : 'Ver'}
                 </button>
-                <button
-                  type="button"
-                  onClick={handleGenerate}
-                  className="shrink-0 rounded-lg border border-slate-300 px-2 text-xs text-slate-600 hover:bg-slate-50"
-                >
+                <button type="button" onClick={handleGenerate} className={`shrink-0 ${secondaryButtonClass} px-2 py-2`}>
                   🎲 Generar
                 </button>
               </div>
@@ -151,22 +144,18 @@ export default function CredentialFormModal({
                     {[0, 1, 2, 3, 4].map((i) => (
                       <span
                         key={i}
-                        className={`h-full flex-1 rounded-full ${i <= strength.score ? STRENGTH_COLORS[strength.score] : 'bg-slate-200'}`}
+                        className={`h-full flex-1 rounded-full ${i <= strength.score ? STRENGTH_COLORS[strength.score] : 'bg-slate-200 dark:bg-slate-700'}`}
                       />
                     ))}
                   </div>
-                  <span className="text-[11px] text-slate-500">{strength.label}</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">{strength.label}</span>
                 </div>
               )}
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-700">Categoría</label>
-              <select
-                value={values.category}
-                onChange={(e) => set('category', e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-              >
+              <label className={labelClass}>Categoría</label>
+              <select value={values.category} onChange={(e) => set('category', e.target.value)} className={selectClass}>
                 {categories.map((c) => (
                   <option key={c.id} value={c.name}>
                     {c.name}
@@ -180,12 +169,8 @@ export default function CredentialFormModal({
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-700">Titular / Responsable</label>
-              <select
-                value={values.owner_id ?? ''}
-                onChange={(e) => set('owner_id', e.target.value || null)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-              >
+              <label className={labelClass}>Titular / Responsable</label>
+              <select value={values.owner_id ?? ''} onChange={(e) => set('owner_id', e.target.value || null)} className={selectClass}>
                 <option value="">Sin asignar</option>
                 {profiles.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -196,43 +181,33 @@ export default function CredentialFormModal({
             </div>
 
             <div className="col-span-2">
-              <label className="mb-1 block text-xs font-medium text-slate-700">¿A qué está atado?</label>
+              <label className={labelClass}>¿A qué está atado?</label>
               <input
                 value={values.linked_to}
                 onChange={(e) => set('linked_to', e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                className={inputClass}
                 placeholder="Ej: Tarjeta VISA 1234, dominio empresa.com, cuenta de Ads…"
               />
             </div>
 
             <div className="col-span-2">
-              <label className="mb-1 block text-xs font-medium text-slate-700">Sitio web (opcional)</label>
-              <input
-                value={values.url}
-                onChange={(e) => set('url', e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                placeholder="https://…"
-              />
+              <label className={labelClass}>Sitio web (opcional)</label>
+              <input value={values.url} onChange={(e) => set('url', e.target.value)} className={inputClass} placeholder="https://…" />
             </div>
 
             <div className="col-span-2">
-              <label className="mb-1 block text-xs font-medium text-slate-700">Notas</label>
-              <textarea
-                value={values.notes}
-                onChange={(e) => set('notes', e.target.value)}
-                rows={2}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-              />
+              <label className={labelClass}>Notas</label>
+              <textarea value={values.notes} onChange={(e) => set('notes', e.target.value)} rows={2} className={inputClass} />
             </div>
 
-            <div className="col-span-2 rounded-lg border border-slate-200 p-3">
-              <p className="mb-2 text-xs font-medium text-slate-700">¿Quién puede ver esta contraseña?</p>
+            <div className="col-span-2 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+              <p className="mb-2 text-xs font-medium text-slate-700 dark:text-slate-300">¿Quién puede ver esta contraseña?</p>
               {!canEditSharing && (
-                <p className="mb-2 text-[11px] text-slate-400">
+                <p className="mb-2 text-[11px] text-slate-400 dark:text-slate-500">
                   Solo quien creó esta credencial o un administrador pueden cambiar esto.
                 </p>
               )}
-              <label className="flex items-center gap-2 text-sm text-slate-600">
+              <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                 <input
                   type="radio"
                   disabled={!canEditSharing}
@@ -241,7 +216,7 @@ export default function CredentialFormModal({
                 />
                 Todo el equipo
               </label>
-              <label className="mt-1 flex items-center gap-2 text-sm text-slate-600">
+              <label className="mt-1 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                 <input
                   type="radio"
                   disabled={!canEditSharing}
@@ -254,7 +229,7 @@ export default function CredentialFormModal({
               {values.shared_with.length > 0 && (
                 <div className="ml-6 mt-2 space-y-1">
                   {profiles.map((p) => (
-                    <label key={p.id} className="flex items-center gap-2 text-sm text-slate-600">
+                    <label key={p.id} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                       <input
                         type="checkbox"
                         disabled={!canEditSharing || p.id === currentUserId}
@@ -262,7 +237,7 @@ export default function CredentialFormModal({
                         onChange={() => toggleViewer(p.id)}
                       />
                       {p.full_name}
-                      {p.id === currentUserId && <span className="text-[11px] text-slate-400">(tú, siempre incluido)</span>}
+                      {p.id === currentUserId && <span className="text-[11px] text-slate-400 dark:text-slate-500">(tú, siempre incluido)</span>}
                     </label>
                   ))}
                 </div>
@@ -270,21 +245,13 @@ export default function CredentialFormModal({
             </div>
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
           <div className="mt-4 flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
-            >
+            <button type="button" onClick={onClose} className={secondaryButtonClass}>
               Cancelar
             </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="rounded-lg bg-brand-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
-            >
+            <button type="submit" disabled={saving} className={primaryButtonClass}>
               {saving ? 'Guardando…' : 'Guardar'}
             </button>
           </div>
