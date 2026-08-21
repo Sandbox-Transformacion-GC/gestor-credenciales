@@ -3,6 +3,8 @@ import type { Category } from '../types'
 import { CATEGORY_COLOR_OPTIONS, categoryBadgeClasses } from '../lib/colors'
 import type { useCategories } from '../hooks/useCategories'
 import { modalCardClass, modalOverlayClass, primaryButtonClass, secondaryButtonClass } from '../lib/ui'
+import { useEscapeToClose } from '../hooks/useEscapeToClose'
+import ConfirmDialog from './ConfirmDialog'
 
 // Recibe las categorías y sus funciones desde afuera (una sola instancia compartida con el resto
 // de la app, en vez de que este panel tenga su propia copia separada) — así, apenas agregas o
@@ -20,6 +22,9 @@ export default function AdminPanel({
   const [newColor, setNewColor] = useState<string>('slate')
   const [error, setError] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<Category | null>(null)
+
+  useEscapeToClose(onClose)
 
   const handleCreate = async () => {
     if (!newName.trim()) return
@@ -32,10 +37,11 @@ export default function AdminPanel({
     }
   }
 
-  const handleDelete = async (c: Category) => {
-    if (!confirm(`¿Eliminar la categoría "${c.name}"? Las credenciales que ya la usan conservan el texto, pero dejará de aparecer como opción.`)) return
-    const err = await remove(c.id)
+  const confirmDelete = async () => {
+    if (!pendingDelete) return
+    const err = await remove(pendingDelete.id)
     if (err) setError(err)
+    setPendingDelete(null)
   }
 
   return (
@@ -96,7 +102,7 @@ export default function AdminPanel({
                         Editar
                       </button>
                       <button
-                        onClick={() => handleDelete(c)}
+                        onClick={() => setPendingDelete(c)}
                         className="rounded-md px-2 py-1 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-slate-700"
                       >
                         Eliminar
@@ -151,6 +157,15 @@ export default function AdminPanel({
           </button>
         </div>
       </div>
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Eliminar categoría"
+          message={`¿Eliminar la categoría "${pendingDelete.name}"? Las credenciales que ya la usan conservan el texto, pero dejará de aparecer como opción.`}
+          onConfirm={confirmDelete}
+          onCancel={() => setPendingDelete(null)}
+        />
+      )}
     </div>
   )
 }

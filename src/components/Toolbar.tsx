@@ -80,6 +80,10 @@ export default function Toolbar({
           {categories.map((c) => (
             <option key={c.id}>{c.name}</option>
           ))}
+          {/* si la categoría del filtro actual se borró, se muestra igual para no dejar el selector "en blanco" */}
+          {filters.category !== 'Todas' && !categories.some((c) => c.name === filters.category) && (
+            <option value={filters.category}>{filters.category} (eliminada)</option>
+          )}
         </select>
 
         <label htmlFor="toolbar-owner" className="sr-only">

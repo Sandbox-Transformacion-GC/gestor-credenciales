@@ -1,7 +1,9 @@
 import { FormEvent, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useEscapeToClose } from '../hooks/useEscapeToClose'
 
 export default function ChangePasswordModal({ onClose }: { onClose: () => void }) {
+  useEscapeToClose(onClose)
   const [newPassword, setNewPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState<string | null>(null)

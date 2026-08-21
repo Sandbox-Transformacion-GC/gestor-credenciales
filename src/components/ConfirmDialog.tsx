@@ -1,3 +1,5 @@
+import { useEscapeToClose } from '../hooks/useEscapeToClose'
+
 export default function ConfirmDialog({
   title,
   message,
@@ -11,6 +13,8 @@ export default function ConfirmDialog({
   onConfirm: () => void
   onCancel: () => void
 }) {
+  useEscapeToClose(onCancel)
+
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 px-4">
       <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl dark:bg-slate-800">

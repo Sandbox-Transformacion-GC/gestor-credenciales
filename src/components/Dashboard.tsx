@@ -40,7 +40,8 @@ export default function Dashboard() {
       if (filters.onlyFavorites && !c.is_favorite) return false
       if (q) {
         const linksText = c.links.map((l) => `${l.label} ${l.value}`).join(' ')
-        const haystack = `${c.title} ${c.email} ${linksText} ${c.notes ?? ''}`.toLowerCase()
+        const ownerName = profiles.find((p) => p.id === c.owner_id)?.full_name ?? ''
+        const haystack = `${c.title} ${c.email} ${linksText} ${c.notes ?? ''} ${ownerName}`.toLowerCase()
         if (!haystack.includes(q)) return false
       }
       return true
@@ -59,7 +60,7 @@ export default function Dashboard() {
     })
 
     return list
-  }, [credentials, filters])
+  }, [credentials, filters, profiles])
 
   const openNew = () => {
     setEditing(null)

@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react'
 import { Category, Credential, CredentialFormValues, Profile, emptyFormValues } from '../types'
 import { estimatePasswordStrength, generatePassword } from '../lib/crypto'
 import { inputClass, labelClass, modalCardClass, modalOverlayClass, primaryButtonClass, secondaryButtonClass, selectClass } from '../lib/ui'
+import { useEscapeToClose } from '../hooks/useEscapeToClose'
 
 const STRENGTH_COLORS = ['bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-lime-500', 'bg-emerald-500']
 
@@ -26,11 +27,17 @@ export default function CredentialFormModal({
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  const [loadingPlain, setLoadingPlain] = useState(false)
+
+  useEscapeToClose(onClose)
 
   // Al crear una credencial nueva, el creador siempre puede definir con quién compartirla.
   // Al editar una existente, solo el creador original o el admin pueden cambiar esa lista.
   const canEditSharing = !editing || editing.created_by === currentUserId || isAdmin
+
+  // Dashboard ya intenta descifrar la contraseña ANTES de abrir este formulario (en openEdit), así
+  // que si llega en null no es que "todavía está cargando" — es que el descifrado falló de verdad
+  // (por ejemplo, la clave maestra cambió). Se avisa claro en vez de decir "Cargando…" para siempre.
+  const decryptFailed = !!editing && editing.password === null
 
   useEffect(() => {
     if (editing) {
@@ -44,7 +51,6 @@ export default function CredentialFormModal({
         owner_id: editing.owner_id,
         shared_with: editing.shared_with,
       })
-      setLoadingPlain(editing.password === null)
     } else {
       setValues({ ...emptyFormValues, owner_id: currentUserId ?? null })
     }
@@ -103,9 +109,11 @@ export default function CredentialFormModal({
           {editing ? 'Editar credencial' : 'Nueva credencial'}
         </h3>
 
-        {editing && loadingPlain && (
-          <p className="mb-3 rounded-lg bg-amber-50 p-2 text-xs text-amber-700 dark:bg-amber-950 dark:text-amber-300">
-            Cargando la contraseña actual descifrada… si no aparece, ábrela primero con "Ver" en la tarjeta.
+        {decryptFailed && (
+          <p className="mb-3 rounded-lg bg-red-50 p-2 text-xs text-red-700 dark:bg-red-950 dark:text-red-300">
+            No se pudo descifrar la contraseña actual con la clave maestra de esta sesión. El campo
+            de contraseña quedó vacío: si guardas así, la reemplazarías por una vacía. Escribe la
+            contraseña correcta antes de guardar, o cancela para no perder la que ya estaba.
           </p>
         )}
 

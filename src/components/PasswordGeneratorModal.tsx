@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { estimatePasswordStrength, generatePassword, PasswordOptions } from '../lib/crypto'
 import { copyWithAutoClear } from '../lib/clipboard'
+import { useEscapeToClose } from '../hooks/useEscapeToClose'
 
 const STRENGTH_COLORS = ['bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-lime-500', 'bg-emerald-500']
 
 export default function PasswordGeneratorModal({ onClose }: { onClose: () => void }) {
+  useEscapeToClose(onClose)
   const [options, setOptions] = useState<PasswordOptions>({
     length: 16,
     uppercase: true,
