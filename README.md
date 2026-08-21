@@ -17,7 +17,7 @@ Aplicación web privada para guardar contraseñas y correos del equipo, con:
 ## Arquitectura
 
 ```
-Navegador (React + Vite, hosteado en GitHub Pages)
+Navegador (React + Vite, hosteado en Vercel)
    │  HTTPS
    ▼
 Supabase (Postgres + Auth)
@@ -82,20 +82,24 @@ git push -u origin main
 Usa un **repositorio privado** en GitHub (Settings → General → Danger Zone si necesitas
 cambiarlo). El `.gitignore` ya excluye tu `.env`, así que las claves de Supabase no se suben.
 
-## 4. Desplegar en GitHub Pages (automático)
+## 4. Desplegar en Vercel (automático)
 
-1. En el repo de GitHub: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-2. **Settings → Secrets and variables → Actions → New repository secret**, agrega:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-3. Haz push a `main` (o **Actions → Deploy a GitHub Pages → Run workflow**). El workflow en
-   [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) compila el sitio y lo publica.
-4. La URL final aparece en **Settings → Pages** (algo como
-   `https://tu-usuario.github.io/tu-repo/`).
+El repo es privado, así que en vez de GitHub Pages (que solo publica repos privados en el plan
+Enterprise) se usa Vercel, que sí tiene plan gratis con repos privados.
 
-> Nota: si el repositorio es privado, GitHub Pages requiere plan GitHub Pro/Team/Enterprise para
-> publicar el sitio como privado, o bien puedes hacer el repo público (el código no contiene
-> secretos ni contraseñas: las credenciales viven cifradas en Supabase, no en el repo).
+1. Entra a [vercel.com](https://vercel.com) → **Add New → Project**.
+2. Autoriza a Vercel a acceder a tu organización/repo de GitHub si te lo pide, y selecciona
+   `Sandbox-Transformacion-GC/gestor-credenciales`.
+3. Vercel detecta automáticamente que es un proyecto **Vite** — no cambies nada del build command
+   ni del output directory por defecto.
+4. Antes de darle a Deploy (o después, en **Settings → Environment Variables**), agrega:
+   - `VITE_SUPABASE_URL` → `https://wibkzheavbyjxiwctkxz.supabase.co`
+   - `VITE_SUPABASE_ANON_KEY` → tu anon/public key de Supabase
+5. **Deploy**. En 1-2 minutos te da una URL final (algo como
+   `https://gestor-credenciales.vercel.app`).
+
+De ahí en adelante, cada `git push` a `main` vuelve a desplegar solo — no hace falta repetir estos
+pasos.
 
 ## 5. Seguridad — resumen de las capas aplicadas
 
@@ -106,7 +110,7 @@ cambiarlo). El `.gitignore` ya excluye tu `.env`, así que las claves de Supabas
 - **Cifrado de extremo a extremo para las contraseñas**: AES-256-GCM derivado con PBKDF2
   (250,000 iteraciones) desde la clave maestra del equipo; el valor cifrado es lo único que
   llega a la base de datos.
-- **HTTPS** en tránsito (GitHub Pages y Supabase lo fuerzan).
+- **HTTPS** en tránsito (Vercel y Supabase lo fuerzan).
 - **Auto-bloqueo** de la bóveda tras 15 min inactivo (borra la clave de cifrado de la memoria).
 - **Portapapeles con autoborrado** a los 20 segundos tras copiar una contraseña.
 - **Papelera lógica** (soft delete): "Eliminar" no borra físicamente el registro, evita pérdidas
