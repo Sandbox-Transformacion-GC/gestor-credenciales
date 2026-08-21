@@ -36,9 +36,15 @@ No hay backend propio que mantener: Supabase actúa como base de datos + autenti
 1. Entra a [supabase.com](https://supabase.com) → crea una cuenta gratuita → **New project**.
 2. Guarda la contraseña de base de datos que te pida (no es la que usarán los 3 usuarios, es solo
    administrativa).
-3. Cuando el proyecto esté listo, ve a **SQL Editor** → **New query**, pega el contenido completo
-   de [`supabase/schema.sql`](supabase/schema.sql) y ejecútalo (▶ Run). Esto crea las tablas,
-   los triggers y las políticas de seguridad (RLS).
+3. Cuando el proyecto esté listo, ve a **SQL Editor** → **New query**, y ejecuta (▶ Run), **en
+   este orden**, el contenido completo de cada archivo en [`supabase/`](supabase):
+   1. `schema.sql`
+   2. `migration_002_roles_categories_sharing.sql`
+   3. `migration_003_personal_favorites_order.sql`
+   4. `migration_004_lock_ownership_fields.sql`
+
+   Esto crea las tablas, los triggers y las políticas de seguridad (RLS). Si en el futuro
+   agrego más migraciones numeradas, corre solo las que aún no hayas ejecutado.
 4. Ve a **Authentication → Providers → Email** y **desactiva** "Allow new users to sign up"
    (o equivalente "Enable email signups"). Así nadie puede crearse una cuenta por su cuenta;
    solo entran las personas que tú invites.
@@ -115,9 +121,31 @@ pasos.
 - **Portapapeles con autoborrado** a los 20 segundos tras copiar una contraseña.
 - **Papelera lógica** (soft delete): "Eliminar" no borra físicamente el registro, evita pérdidas
   accidentales.
-- **CSP** (Content-Security-Policy) restrictiva en `index.html`.
+- **CSP** (Content-Security-Policy) restrictiva, aplicada dos veces: como cabecera HTTP real
+  (`vercel.json`, incluye `frame-ancestors` contra clickjacking) y como respaldo en `index.html`.
+  Limitada al dominio exacto de tu proyecto de Supabase.
+- Cabeceras adicionales en `vercel.json`: `X-Frame-Options`, `X-Content-Type-Options`,
+  `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security`.
+- **Registro de auditoría** (`audit_log`): queda constancia de quién creó, eliminó o cambió con
+  quién se comparte cada credencial, y cuándo. Consultable desde el SQL Editor de Supabase:
+  `select * from audit_log order by created_at desc;`.
 - Nunca se usa la `service_role key` de Supabase (esa sí es secreta) en el frontend; solo la
   `anon key`, diseñada para exponerse en el navegador.
+- A nivel de base de datos, nadie puede reasignar de quién es una credencial ni tocar su fecha de
+  creación desde fuera de la app (protegido con un trigger, no solo con la interfaz).
+
+### ⚠️ Dos cosas que debes verificar tú mismo en el dashboard de Supabase
+
+1. **Confirma que el registro público sigue desactivado.** Ve a **Authentication → Sign In /
+   Providers → Email** y revisa que no exista forma de que alguien externo se cree una cuenta
+   (el toggle de "Enable email provider" debe seguir encendido para que el login funcione, pero
+   el registro público debe seguir bloqueado). Esto es crítico: la `anon key` es pública por
+   diseño (viaja en el código del sitio), así que si el registro público estuviera habilitado,
+   cualquiera que la encuentre podría crear una cuenta y leer las credenciales que no estén
+   restringidas a personas específicas.
+2. **Sube el mínimo de la contraseña de login** de 6 a al menos 10-12 caracteres, en la misma
+   pantalla (**Minimum password length**). No afecta la clave maestra de la bóveda (esa ya exige
+   10+ desde la app).
 
 **Importante:** ningún sistema es 100% infalible. Evita reutilizar la clave maestra del equipo
 en otros sitios, y si alguien deja el equipo, cambia esa clave maestra (implica volver a guardar

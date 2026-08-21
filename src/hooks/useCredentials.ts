@@ -72,16 +72,33 @@ export function useCredentials(vaultKey: CryptoKey | null, userId: string | unde
     setCredentials((prev) => prev.map((c) => (c.id === id ? { ...c, password: null } : c)))
   }, [])
 
-  const syncViewers = useCallback(async (credentialId: string, sharedWith: string[]) => {
-    // Reemplaza la lista completa: borra la anterior y mete la nueva (más simple y menos propenso
-    // a errores que calcular el diff; el volumen de datos es mínimo para 3 usuarios).
-    await supabase.from('credential_viewers').delete().eq('credential_id', credentialId)
-    if (sharedWith.length > 0) {
-      await supabase
-        .from('credential_viewers')
-        .insert(sharedWith.map((profile_id) => ({ credential_id: credentialId, profile_id, added_by: userId })))
-    }
-  }, [userId])
+  /** Registro simple de auditoría (no bloquea la acción si falla; solo queda para consulta). */
+  const logAction = useCallback(
+    async (action: string, credentialId: string, detail?: string) => {
+      if (!userId) return
+      await supabase.from('audit_log').insert({ actor_id: userId, action, credential_id: credentialId, detail })
+    },
+    [userId],
+  )
+
+  const syncViewers = useCallback(
+    async (credentialId: string, sharedWith: string[]) => {
+      // Reemplaza la lista completa: borra la anterior y mete la nueva (más simple y menos propenso
+      // a errores que calcular el diff; el volumen de datos es mínimo para 3 usuarios).
+      await supabase.from('credential_viewers').delete().eq('credential_id', credentialId)
+      if (sharedWith.length > 0) {
+        await supabase
+          .from('credential_viewers')
+          .insert(sharedWith.map((profile_id) => ({ credential_id: credentialId, profile_id, added_by: userId })))
+      }
+      await logAction(
+        'sharing_changed',
+        credentialId,
+        sharedWith.length > 0 ? `restringida a ${sharedWith.length} persona(s)` : 'abierta a todo el equipo',
+      )
+    },
+    [userId, logAction],
+  )
 
   const create = useCallback(
     async (values: CredentialFormValues) => {
@@ -105,10 +122,11 @@ export function useCredentials(vaultKey: CryptoKey | null, userId: string | unde
         .single()
       if (insertError) return insertError.message
       if (values.shared_with.length > 0) await syncViewers(data.id, values.shared_with)
+      await logAction('created', data.id, values.title)
       await refresh()
       return null
     },
-    [vaultKey, userId, refresh, syncViewers],
+    [vaultKey, userId, refresh, syncViewers, logAction],
   )
 
   const update = useCallback(
@@ -178,10 +196,11 @@ export function useCredentials(vaultKey: CryptoKey | null, userId: string | unde
         .update({ deleted_at: new Date().toISOString() })
         .eq('id', id)
       if (deleteError) return deleteError.message
+      await logAction('deleted', id)
       setCredentials((prev) => prev.filter((c) => c.id !== id))
       return null
     },
-    [],
+    [logAction],
   )
 
   return { credentials, loading, error, refresh, reveal, hide, create, update, toggleFavorite, remove, reorder }
