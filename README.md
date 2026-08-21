@@ -163,9 +163,10 @@ así que eso se cierra aparte con `migration_005_block_public_signup.sql` (lista
 2. Recién después, créala en **Authentication → Users → Add user**. Si te saltas el paso 1, la
    creación falla con un mensaje de "Registro no permitido" (funcionando como debe).
 
-Además, sube el **mínimo de la contraseña de login** de 6 a al menos 10-12 caracteres en
-**Authentication → Sign In / Providers → Email → Minimum password length**. No afecta la clave
-maestra de la bóveda (esa ya exige 10+ desde la app).
+El mínimo de la contraseña de login está en 12 caracteres (**Authentication → Sign In / Providers
+→ Email → Minimum password length**) — no afecta la clave maestra de la bóveda (esa ya exige 10+
+desde la app). Solo aplica a contraseñas nuevas o cambiadas; si alguien tiene una más corta de
+antes, puede actualizarla desde **Cambiar mi contraseña** en la app.
 
 **Importante:** ningún sistema es 100% infalible. Evita reutilizar la clave maestra del equipo
 en otros sitios, y si alguien deja el equipo, cambia esa clave maestra (implica volver a guardar
