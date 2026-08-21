@@ -47,10 +47,16 @@ export default function Toolbar({
     <div className="mb-4 space-y-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
+          <label htmlFor="toolbar-search" className="sr-only">
+            Buscar credenciales
+          </label>
           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
             🔎
           </span>
           <input
+            id="toolbar-search"
+            name="search"
+            autoComplete="off"
             value={filters.search}
             onChange={(e) => set('search', e.target.value)}
             placeholder="Buscar por servicio, correo, a qué está atado…"
@@ -66,14 +72,20 @@ export default function Toolbar({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <select value={filters.category} onChange={(e) => set('category', e.target.value)} className={selectClass}>
+        <label htmlFor="toolbar-category" className="sr-only">
+          Filtrar por categoría
+        </label>
+        <select id="toolbar-category" name="category" value={filters.category} onChange={(e) => set('category', e.target.value)} className={selectClass}>
           <option>Todas</option>
           {categories.map((c) => (
             <option key={c.id}>{c.name}</option>
           ))}
         </select>
 
-        <select value={filters.ownerId} onChange={(e) => set('ownerId', e.target.value)} className={selectClass}>
+        <label htmlFor="toolbar-owner" className="sr-only">
+          Filtrar por titular
+        </label>
+        <select id="toolbar-owner" name="owner" value={filters.ownerId} onChange={(e) => set('ownerId', e.target.value)} className={selectClass}>
           <option value="Todos">Titular: todos</option>
           {profiles.map((p) => (
             <option key={p.id} value={p.id}>
@@ -82,7 +94,12 @@ export default function Toolbar({
           ))}
         </select>
 
+        <label htmlFor="toolbar-sort" className="sr-only">
+          Ordenar por
+        </label>
         <select
+          id="toolbar-sort"
+          name="sort"
           value={filters.sortBy}
           onChange={(e) => set('sortBy', e.target.value as Filters['sortBy'])}
           className={selectClass}
@@ -95,6 +112,8 @@ export default function Toolbar({
 
         <label className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
           <input
+            id="toolbar-favorites"
+            name="onlyFavorites"
             type="checkbox"
             checked={filters.onlyFavorites}
             onChange={(e) => set('onlyFavorites', e.target.checked)}

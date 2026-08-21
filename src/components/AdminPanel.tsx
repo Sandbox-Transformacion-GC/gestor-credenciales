@@ -110,15 +110,25 @@ export default function AdminPanel({
         )}
 
         <div className="rounded-lg border border-dashed border-slate-300 p-3 dark:border-slate-600">
-          <p className="mb-2 text-xs font-medium text-slate-700 dark:text-slate-300">Nueva categoría</p>
+          <label htmlFor="new-category-name" className="mb-2 block text-xs font-medium text-slate-700 dark:text-slate-300">
+            Nueva categoría
+          </label>
           <div className="flex gap-2">
             <input
+              id="new-category-name"
+              name="new-category-name"
+              autoComplete="off"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="Nombre"
               className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
             />
+            <label htmlFor="new-category-color" className="sr-only">
+              Color de la nueva categoría
+            </label>
             <select
+              id="new-category-color"
+              name="new-category-color"
               value={newColor}
               onChange={(e) => setNewColor(e.target.value)}
               className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
@@ -158,12 +168,23 @@ function EditRow({
   const [color, setColor] = useState(category.color)
   return (
     <div className="flex flex-1 gap-2">
+      <label htmlFor={`edit-category-name-${category.id}`} className="sr-only">
+        Nombre de la categoría
+      </label>
       <input
+        id={`edit-category-name-${category.id}`}
+        name={`edit-category-name-${category.id}`}
+        autoComplete="off"
         value={name}
         onChange={(e) => setName(e.target.value)}
         className="flex-1 rounded-lg border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
       />
+      <label htmlFor={`edit-category-color-${category.id}`} className="sr-only">
+        Color de la categoría
+      </label>
       <select
+        id={`edit-category-color-${category.id}`}
+        name={`edit-category-color-${category.id}`}
         value={color}
         onChange={(e) => setColor(e.target.value)}
         className="rounded-lg border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"

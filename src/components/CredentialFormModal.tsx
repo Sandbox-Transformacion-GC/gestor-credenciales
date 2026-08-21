@@ -112,8 +112,12 @@ export default function CredentialFormModal({
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
-              <label className={labelClass}>Servicio / Nombre *</label>
+              <label htmlFor="cred-title" className={labelClass}>
+                Servicio / Nombre *
+              </label>
               <input
+                id="cred-title"
+                name="title"
                 required
                 value={values.title}
                 onChange={(e) => set('title', e.target.value)}
@@ -123,8 +127,13 @@ export default function CredentialFormModal({
             </div>
 
             <div className="col-span-2">
-              <label className={labelClass}>Correo / usuario</label>
+              <label htmlFor="cred-email" className={labelClass}>
+                Correo / usuario
+              </label>
               <input
+                id="cred-email"
+                name="email"
+                autoComplete="off"
                 value={values.email}
                 onChange={(e) => set('email', e.target.value)}
                 className={inputClass}
@@ -133,10 +142,15 @@ export default function CredentialFormModal({
             </div>
 
             <div className="col-span-2">
-              <label className={labelClass}>Contraseña *</label>
+              <label htmlFor="cred-password" className={labelClass}>
+                Contraseña *
+              </label>
               <div className="flex gap-2">
                 <input
+                  id="cred-password"
+                  name="password"
                   required
+                  autoComplete="off"
                   type={showPassword ? 'text' : 'password'}
                   value={values.password}
                   onChange={(e) => set('password', e.target.value)}
@@ -165,8 +179,16 @@ export default function CredentialFormModal({
             </div>
 
             <div>
-              <label className={labelClass}>Categoría</label>
-              <select value={values.category} onChange={(e) => set('category', e.target.value)} className={selectClass}>
+              <label htmlFor="cred-category" className={labelClass}>
+                Categoría
+              </label>
+              <select
+                id="cred-category"
+                name="category"
+                value={values.category}
+                onChange={(e) => set('category', e.target.value)}
+                className={selectClass}
+              >
                 {categories.map((c) => (
                   <option key={c.id} value={c.name}>
                     {c.name}
@@ -180,8 +202,16 @@ export default function CredentialFormModal({
             </div>
 
             <div>
-              <label className={labelClass}>Titular / Responsable</label>
-              <select value={values.owner_id ?? ''} onChange={(e) => set('owner_id', e.target.value || null)} className={selectClass}>
+              <label htmlFor="cred-owner" className={labelClass}>
+                Titular / Responsable
+              </label>
+              <select
+                id="cred-owner"
+                name="owner"
+                value={values.owner_id ?? ''}
+                onChange={(e) => set('owner_id', e.target.value || null)}
+                className={selectClass}
+              >
                 <option value="">Sin asignar</option>
                 {profiles.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -192,17 +222,29 @@ export default function CredentialFormModal({
             </div>
 
             <div className="col-span-2">
-              <label className={labelClass}>Enlaces / a qué está atado</label>
+              <span className={labelClass}>Enlaces / a qué está atado</span>
               <div className="space-y-2">
                 {values.links.map((link, i) => (
                   <div key={i} className="flex gap-2">
+                    <label htmlFor={`link-label-${i}`} className="sr-only">
+                      Nombre del enlace {i + 1}
+                    </label>
                     <input
+                      id={`link-label-${i}`}
+                      name={`link-label-${i}`}
+                      autoComplete="off"
                       value={link.label}
                       onChange={(e) => setLink(i, 'label', e.target.value)}
                       className={`${inputClass} w-2/5`}
                       placeholder="Ej: Sitio web, Panel admin, Tarjeta…"
                     />
+                    <label htmlFor={`link-value-${i}`} className="sr-only">
+                      Valor del enlace {i + 1}
+                    </label>
                     <input
+                      id={`link-value-${i}`}
+                      name={`link-value-${i}`}
+                      autoComplete="off"
                       value={link.value}
                       onChange={(e) => setLink(i, 'value', e.target.value)}
                       className={inputClass}
@@ -225,8 +267,17 @@ export default function CredentialFormModal({
             </div>
 
             <div className="col-span-2">
-              <label className={labelClass}>Notas</label>
-              <textarea value={values.notes} onChange={(e) => set('notes', e.target.value)} rows={2} className={inputClass} />
+              <label htmlFor="cred-notes" className={labelClass}>
+                Notas
+              </label>
+              <textarea
+                id="cred-notes"
+                name="notes"
+                value={values.notes}
+                onChange={(e) => set('notes', e.target.value)}
+                rows={2}
+                className={inputClass}
+              />
             </div>
 
             <div className="col-span-2 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
@@ -238,6 +289,8 @@ export default function CredentialFormModal({
               )}
               <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                 <input
+                  id="sharing-everyone"
+                  name="sharing"
                   type="radio"
                   disabled={!canEditSharing}
                   checked={values.shared_with.length === 0}
@@ -247,6 +300,8 @@ export default function CredentialFormModal({
               </label>
               <label className="mt-1 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                 <input
+                  id="sharing-specific"
+                  name="sharing"
                   type="radio"
                   disabled={!canEditSharing}
                   checked={values.shared_with.length > 0}
@@ -260,6 +315,8 @@ export default function CredentialFormModal({
                   {profiles.map((p) => (
                     <label key={p.id} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                       <input
+                        id={`sharing-viewer-${p.id}`}
+                        name={`sharing-viewer-${p.id}`}
                         type="checkbox"
                         disabled={!canEditSharing || p.id === currentUserId}
                         checked={p.id === currentUserId || values.shared_with.includes(p.id)}

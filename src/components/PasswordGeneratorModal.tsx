@@ -57,10 +57,12 @@ export default function PasswordGeneratorModal({ onClose }: { onClose: () => voi
         <div className="space-y-3">
           <div>
             <div className="mb-1 flex justify-between text-xs text-slate-600 dark:text-slate-300">
-              <span>Longitud</span>
+              <label htmlFor="gen-length">Longitud</label>
               <span>{options.length}</span>
             </div>
             <input
+              id="gen-length"
+              name="length"
               type="range"
               min={8}
               max={32}
@@ -81,6 +83,8 @@ export default function PasswordGeneratorModal({ onClose }: { onClose: () => voi
             <label key={key} className="flex items-center justify-between text-sm text-slate-700 dark:text-slate-300">
               {label}
               <input
+                id={`gen-${key}`}
+                name={key}
                 type="checkbox"
                 checked={options[key]}
                 onChange={(e) => regenerate({ ...options, [key]: e.target.checked })}

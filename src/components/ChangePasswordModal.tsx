@@ -53,21 +53,31 @@ export default function ChangePasswordModal({ onClose }: { onClose: () => void }
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">Nueva contraseña</label>
+              <label htmlFor="new-password" className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                Nueva contraseña
+              </label>
               <input
+                id="new-password"
+                name="new-password"
                 type="password"
                 required
                 autoFocus
+                autoComplete="new-password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">Confirmar nueva contraseña</label>
+              <label htmlFor="new-password-confirm" className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300">
+                Confirmar nueva contraseña
+              </label>
               <input
+                id="new-password-confirm"
+                name="new-password-confirm"
                 type="password"
                 required
+                autoComplete="new-password"
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-200 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"

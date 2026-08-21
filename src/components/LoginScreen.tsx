@@ -30,8 +30,12 @@ export default function LoginScreen() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Correo</label>
+            <label htmlFor="login-email" className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Correo
+            </label>
             <input
+              id="login-email"
+              name="email"
               type="email"
               required
               autoComplete="username"
@@ -42,8 +46,12 @@ export default function LoginScreen() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Contraseña</label>
+            <label htmlFor="login-password" className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Contraseña
+            </label>
             <input
+              id="login-password"
+              name="password"
               type="password"
               required
               autoComplete="current-password"
