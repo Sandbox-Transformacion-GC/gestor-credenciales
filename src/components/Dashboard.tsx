@@ -7,6 +7,7 @@ import Header from './Header'
 import Toolbar, { defaultFilters, Filters } from './Toolbar'
 import CredentialCard from './CredentialCard'
 import CredentialListRow from './CredentialListRow'
+import CredentialListHeader from './CredentialListHeader'
 import CredentialFormModal from './CredentialFormModal'
 import PasswordGeneratorModal from './PasswordGeneratorModal'
 import AdminPanel from './AdminPanel'
@@ -168,26 +169,29 @@ export default function Dashboard() {
             ))}
           </div>
         ) : (
-          <div className="space-y-2">
-            {filtered.map((c) => (
-              <CredentialListRow
-                key={c.id}
-                credential={c}
-                profiles={profiles}
-                categories={categories}
-                currentUserId={profile?.id}
-                isAdmin={isAdmin}
-                draggable={dragEnabled}
-                onDragStart={handleDragStart(c.id)}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop(c.id)}
-                onReveal={(id) => reveal(id)}
-                onHide={hide}
-                onEdit={openEdit}
-                onDelete={setPendingDelete}
-                onToggleFavorite={toggleFavorite}
-              />
-            ))}
+          <div className="overflow-x-auto">
+            <div className="min-w-[64rem] space-y-2">
+              <CredentialListHeader />
+              {filtered.map((c) => (
+                <CredentialListRow
+                  key={c.id}
+                  credential={c}
+                  profiles={profiles}
+                  categories={categories}
+                  currentUserId={profile?.id}
+                  isAdmin={isAdmin}
+                  draggable={dragEnabled}
+                  onDragStart={handleDragStart(c.id)}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop(c.id)}
+                  onReveal={(id) => reveal(id)}
+                  onHide={hide}
+                  onEdit={openEdit}
+                  onDelete={setPendingDelete}
+                  onToggleFavorite={toggleFavorite}
+                />
+              ))}
+            </div>
           </div>
         )}
       </main>
