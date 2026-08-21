@@ -8,6 +8,7 @@ import CredentialCard from './CredentialCard'
 import CredentialFormModal from './CredentialFormModal'
 import PasswordGeneratorModal from './PasswordGeneratorModal'
 import AdminPanel from './AdminPanel'
+import ChangePasswordModal from './ChangePasswordModal'
 import ConfirmDialog from './ConfirmDialog'
 import type { Credential, CredentialFormValues } from '../types'
 
@@ -22,6 +23,7 @@ export default function Dashboard() {
   const [editing, setEditing] = useState<Credential | null>(null)
   const [showGenerator, setShowGenerator] = useState(false)
   const [showAdmin, setShowAdmin] = useState(false)
+  const [showChangePassword, setShowChangePassword] = useState(false)
   const [pendingDelete, setPendingDelete] = useState<Credential | null>(null)
   const dragId = useRef<string | null>(null)
 
@@ -108,7 +110,11 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen">
-      <Header onOpenGenerator={() => setShowGenerator(true)} onOpenAdmin={() => setShowAdmin(true)} />
+      <Header
+        onOpenGenerator={() => setShowGenerator(true)}
+        onOpenAdmin={() => setShowAdmin(true)}
+        onOpenChangePassword={() => setShowChangePassword(true)}
+      />
 
       <main className="mx-auto max-w-6xl px-4 py-6">
         <Toolbar
@@ -172,6 +178,7 @@ export default function Dashboard() {
 
       {showGenerator && <PasswordGeneratorModal onClose={() => setShowGenerator(false)} />}
       {showAdmin && <AdminPanel onClose={() => setShowAdmin(false)} />}
+      {showChangePassword && <ChangePasswordModal onClose={() => setShowChangePassword(false)} />}
 
       {pendingDelete && (
         <ConfirmDialog

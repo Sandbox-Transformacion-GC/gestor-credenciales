@@ -3,9 +3,11 @@ import { useVault } from '../contexts/VaultContext'
 export default function Header({
   onOpenGenerator,
   onOpenAdmin,
+  onOpenChangePassword,
 }: {
   onOpenGenerator: () => void
   onOpenAdmin: () => void
+  onOpenChangePassword: () => void
 }) {
   const { profile, isAdmin, signOut, lock } = useVault()
 
@@ -39,12 +41,16 @@ export default function Header({
           >
             🔒 Bloquear
           </button>
-          <div className="flex items-center gap-2 pl-2">
+          <button
+            onClick={onOpenChangePassword}
+            title="Cambiar mi contraseña de acceso"
+            className="flex items-center gap-2 rounded-lg pl-2 pr-1 hover:bg-slate-50"
+          >
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700">
               {(profile?.full_name ?? '?').slice(0, 1).toUpperCase()}
             </div>
             <span className="hidden text-sm text-slate-600 sm:inline">{profile?.full_name}</span>
-          </div>
+          </button>
           <button
             onClick={() => signOut()}
             className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700"
